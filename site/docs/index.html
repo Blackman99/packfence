@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>packfence docs</title>
+  <meta name="description" content="packfence CLI and GitHub Action documentation." />
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../fonts.css" />
+  <link rel="stylesheet" href="../style.css" />
+  <meta property="og:title" content="packfence docs" />
+  <meta property="og:description" content="CLI flags, config, Action inputs, exit codes." />
+  <meta property="og:image" content="https://blackman99.github.io/packfence/og-image.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://blackman99.github.io/packfence/og-image.png" />
+  <style>
+    .doc { max-width: 760px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+    .doc h2 { font-family: Oxanium, sans-serif; color: var(--amber); margin-top: 2rem; }
+    .doc table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    .doc th, .doc td { border: 1px solid rgba(197,208,220,.2); padding: .5rem .6rem; text-align: left; }
+    .doc th { background: var(--recess); font-family: Oxanium, sans-serif; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="titlebar">
+    <a href="../"><img src="../logo.svg" width="36" height="36" alt="" /></a>
+    <h1>PACKFENCE — DOCS</h1>
+    <span class="meta"><a href="../">← console</a></span>
+  </div>
+  <main class="doc">
+    <h2>CLI</h2>
+    <pre>packfence [path] [--format human|json|github-annotations|summary]
+          [--config file] [--list] [--test] [--fail|--no-fail]</pre>
+    <table>
+      <tr><th>Flag</th><th>Meaning</th></tr>
+      <tr><td><code>--format</code></td><td>Output style. Default <code>human</code>.</td></tr>
+      <tr><td><code>--config</code></td><td>Path to JSON config (else <code>.packfencerc.json</code> / <code>package.json#packfence</code>).</td></tr>
+      <tr><td><code>--list</code></td><td>Also print every packed file path + size.</td></tr>
+      <tr><td><code>--test</code></td><td>Report HOLD findings but exit 0.</td></tr>
+      <tr><td><code>--fail</code></td><td>Exit 1 on fail findings (default).</td></tr>
+    </table>
+
+    <h2>Exit codes</h2>
+    <table>
+      <tr><th>Code</th><th>Meaning</th></tr>
+      <tr><td>0</td><td>CLEAR, or <code>--test</code></td></tr>
+      <tr><td>1</td><td>HOLD (fail-severity finding)</td></tr>
+      <tr><td>2</td><td>Usage / runtime error (e.g. npm pack failed)</td></tr>
+    </table>
+
+    <h2>GitHub Action</h2>
+    <pre>- uses: Blackman99/packfence@v0.1.0
+  with:
+    path: .
+    config: ""
+    fail: true
+    version: local</pre>
+    <p><code>version: local</code> builds the action checkout. Set a semver once the package is on npm.</p>
+
+    <h2>Config schema</h2>
+    <pre>{
+  "allow": ["glob"],
+  "deny": ["glob"],
+  "severity": { "source-map": "fail", "file-large": "warn" },
+  "maxFileBytes": 20971520,
+  "maxFileWarnBytes": 5242880,
+  "maxTotalBytes": 52428800,
+  "contentScanMaxBytes": 524288
+}</pre>
+    <p>Severity values: <code>fail</code> · <code>warn</code> · <code>info</code> · <code>allow</code>.</p>
+
+    <h2>How the file list is built</h2>
+    <p>
+      packfence shells out to <code>npm pack --dry-run --json --ignore-scripts</code>
+      so the file set matches what npm would put in the tarball (npm-packlist / <code>files</code> field / <code>.npmignore</code>).
+    </p>
+  </main>
+  <footer>
+    <nav>
+      <a href="../">Home</a>
+      <a href="https://github.com/Blackman99/packfence">Repo</a>
+      <a href="https://github.com/Blackman99/packfence/blob/main/GOAL.md">GOAL.md</a>
+    </nav>
+  </footer>
+</body>
+</html>

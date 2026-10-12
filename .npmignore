@@ -1,0 +1,13 @@
+src/
+test/
+site/
+scripts/
+.github/
+*.ts
+!dist/**
+tsconfig.json
+.gitignore
+.packfencerc.json
+demo.svg
+assets/
+packfence-promo/

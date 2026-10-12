@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 280" width="720" height="280" role="img" aria-label="packfence demo: scan fails on source map">
+  <rect width="720" height="280" fill="#0a1628"/>
+  <defs>
+    <pattern id="scan" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="1" fill="#f4b942" opacity="0.06"/>
+    </pattern>
+  </defs>
+  <rect width="720" height="280" fill="url(#scan)"/>
+  <!-- title bar -->
+  <rect x="16" y="12" width="688" height="36" fill="#1a2a40"/>
+  <text x="28" y="36" font-family="ui-monospace,monospace" font-size="14" font-weight="700" fill="#f4b942">PACKFENCE — PRE-PUBLISH SCAN</text>
+  <text x="680" y="36" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#c5d0dc">npm pack · 14 files</text>
+  <!-- belt -->
+  <rect x="16" y="70" width="688" height="120" fill="#1a2a40"/>
+  <!-- suitcase moving -->
+  <g>
+    <animateTransform attributeName="transform" type="translate" values="-120 0; 40 0; 40 0; 200 0" keyTimes="0;0.25;0.55;1" dur="4s" repeatCount="indefinite"/>
+    <rect x="0" y="95" width="90" height="60" rx="6" fill="#f4b942" opacity="0.85"/>
+    <rect x="42" y="100" width="6" height="50" fill="#0a1628"/>
+    <path d="M25 95 V80 h40 v15" fill="none" stroke="#f4b942" stroke-width="6" stroke-linecap="round"/>
+  </g>
+  <!-- sweep line -->
+  <rect x="200" y="70" width="3" height="120" fill="#f4b942" opacity="0.7">
+    <animate attributeName="opacity" values="0.2;0.9;0.2" dur="1.2s" repeatCount="indefinite"/>
+  </rect>
+  <!-- findings strip -->
+  <g font-family="ui-monospace,monospace" font-size="13">
+    <text x="28" y="220" fill="#2f6f5e">CLEAR  dist/index.js</text>
+    <text x="28" y="242" fill="#2f6f5e">CLEAR  README.md</text>
+    <text x="28" y="264" fill="#b33a3a">
+      <tspan>HOLD   dist/index.js.map  · sourcesContent</tspan>
+      <animate attributeName="fill" values="#f4b942;#b33a3a;#f4b942;#b33a3a" dur="1.5s" repeatCount="indefinite"/>
+    </text>
+  </g>
+  <rect x="560" y="210" width="120" height="40" rx="4" fill="#b33a3a"/>
+  <text x="620" y="236" text-anchor="middle" font-family="ui-monospace,monospace" font-size="18" font-weight="700" fill="#c5d0dc">HOLD</text>
+</svg>

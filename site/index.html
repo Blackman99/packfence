@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>packfence — pre-publish npm pack fence</title>
+  <meta name="description" content="Tell you, before you publish, whether the exact npm tarball would ship source maps, secrets, or other files you did not mean to include." />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="fonts.css" />
+  <link rel="stylesheet" href="style.css" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="packfence — PRE-PUBLISH SCAN" />
+  <meta property="og:description" content="Fail CI if npm pack would ship source maps, secrets, or other files you did not mean to include." />
+  <meta property="og:url" content="https://blackman99.github.io/packfence/" />
+  <meta property="og:image" content="https://blackman99.github.io/packfence/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="packfence — PRE-PUBLISH SCAN" />
+  <meta name="twitter:description" content="Fail CI if npm pack would ship source maps, secrets, or other files you did not mean to include." />
+  <meta name="twitter:image" content="https://blackman99.github.io/packfence/og-image.png" />
+</head>
+<body>
+  <header class="console" role="banner">
+    <div class="titlebar">
+      <img src="logo.svg" width="36" height="36" alt="" />
+      <h1>PACKFENCE — PRE-PUBLISH SCAN</h1>
+      <span class="meta">operator console · npm pack semantics</span>
+    </div>
+    <div class="viewport">
+      <div class="xray" aria-hidden="true">
+        <p class="tagline">
+          Tell you, <strong>before you publish</strong>, whether the exact npm tarball would ship source maps, secrets, or other files you did not mean to include.
+        </p>
+        <div class="belt"></div>
+        <svg id="suitcase" class="suitcase" viewBox="0 0 120 78" aria-hidden="true">
+          <rect class="body" x="8" y="18" width="104" height="52" rx="6"/>
+          <rect class="strap" x="55" y="22" width="6" height="44"/>
+          <path d="M40 18 V6 h40 v12" fill="none" stroke="#f4b942" stroke-width="6" stroke-linecap="round"/>
+          <circle cx="28" cy="72" r="5" fill="#f4b942"/>
+          <circle cx="92" cy="72" r="5" fill="#f4b942"/>
+        </svg>
+        <div id="sweep" class="sweep"></div>
+      </div>
+      <div class="strip" aria-label="Scan findings">
+        <div id="strip-track" class="strip-track"></div>
+      </div>
+    </div>
+    <div class="actions">
+      <a class="btn primary" href="https://github.com/Blackman99/packfence">GitHub</a>
+      <a class="btn" href="docs/">Docs · BAY</a>
+      <a class="btn" href="https://github.com/Blackman99/packfence/releases">Releases</a>
+    </div>
+  </header>
+
+  <main class="bays">
+    <section class="bay" id="install">
+      <div class="bay-id">BAY 01 · INSTALL</div>
+      <h2>One command in CI or locally</h2>
+      <pre>npx github:Blackman99/packfence
+# or after npm publish:
+# npx packfence .</pre>
+    </section>
+
+    <section class="bay" id="why">
+      <div class="bay-id">BAY 02 · WHY</div>
+      <h2>Anthropic shipped Claude Code source maps</h2>
+      <p>
+        In March 2026, <code>@anthropic-ai/claude-code</code> v2.1.88 published source maps with
+        <code>sourcesContent</code>, exposing ~512k lines of TypeScript.
+        Existing pack linters are allowlist/size focused or barely used.
+        packfence runs real <code>npm pack --dry-run</code> semantics and fails on Anthropic-class mistakes.
+      </p>
+    </section>
+
+    <section class="bay" id="rules">
+      <div class="bay-id">BAY 03 · DEFAULT RULES</div>
+      <h2>What puts a file on HOLD</h2>
+      <ul class="rules">
+        <li><span class="tag hold">HOLD</span><span><code>*.map</code> / <code>*.js.map</code> and maps whose JSON has non-empty <code>sourcesContent</code></span></li>
+        <li><span class="tag hold">HOLD</span><span><code>.env</code>, <code>*.pem</code>, <code>*.key</code>, <code>id_rsa*</code>, <code>.git/</code>, <code>node_modules/</code>, <code>.npmrc</code> with <code>_auth</code></span></li>
+        <li><span class="tag hold">HOLD</span><span>Secret content heuristics (AWS keys, private key headers, GitHub/npm tokens) in packed text files</span></li>
+        <li><span class="tag hold">HOLD</span><span>Individual file &gt; 20MB</span></li>
+        <li><span class="tag warn">WARN</span><span>Individual file &gt; 5MB · total unpacked &gt; 50MB</span></li>
+      </ul>
+    </section>
+
+    <section class="bay" id="action">
+      <div class="bay-id">BAY 04 · GITHUB ACTION</div>
+      <h2>Fence the publish job</h2>
+      <pre>- uses: Blackman99/packfence@v0.1.0
+  with:
+    path: .
+    fail: true</pre>
+    </section>
+
+    <section class="bay" id="config">
+      <div class="bay-id">BAY 05 · CONFIG</div>
+      <h2>Allow / deny without rewriting the binary</h2>
+      <pre>{
+  "packfence": {
+    "allow": ["dist/**/*.map"],
+    "deny": ["**/*.snap"],
+    "severity": { "file-large": "fail" }
+  }
+}</pre>
+      <p>Or put the same object in <code>.packfencerc.json</code>.</p>
+    </section>
+  </main>
+
+  <footer>
+    <nav>
+      <a href="https://github.com/Blackman99/packfence">Repo</a>
+      <a href="docs/">Docs</a>
+      <a href="https://github.com/Blackman99/packfence/blob/main/GOAL.md">GOAL.md</a>
+      <a href="https://github.com/Blackman99/packfence/blob/main/LICENSE">MIT</a>
+    </nav>
+    <div>packfence · airport baggage X-ray operator console</div>
+  </footer>
+  <script src="app.js" defer></script>
+</body>
+</html>

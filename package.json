@@ -1,0 +1,62 @@
+{
+  "name": "packfence",
+  "version": "0.1.0",
+  "description": "Tell you, before you publish, whether the exact npm tarball would ship source maps, secrets, or other files you did not mean to include.",
+  "type": "module",
+  "bin": {
+    "packfence": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "action.yml",
+    "LICENSE",
+    "README.md",
+    "GOAL.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "test": "node --import tsx --test test/*.test.ts",
+    "prepack": "npm run build",
+    "packfence:self": "node dist/cli.js ."
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "npm",
+    "publish",
+    "pack",
+    "source-maps",
+    "secrets",
+    "ci",
+    "github-action",
+    "security"
+  ],
+  "author": "Blackman99",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Blackman99/packfence.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Blackman99/packfence/issues"
+  },
+  "homepage": "https://blackman99.github.io/packfence/",
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "packfence": {
+    "deny": [],
+    "allow": []
+  }
+}

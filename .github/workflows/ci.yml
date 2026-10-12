@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [18, 20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - name: Self-scan (packfence on packfence)
+        run: node dist/cli.js .
+      - name: npm pack dry-run
+        run: npm pack --dry-run
+
+  action-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan clean fixture via action
+        uses: ./
+        with:
+          path: test/fixtures/clean
+          fail: "true"
+      - name: Scan with-map fixture (expect fail)
+        id: hold
+        continue-on-error: true
+        uses: ./
+        with:
+          path: test/fixtures/with-map
+          fail: "true"
+      - name: Assert HOLD
+        run: |
+          if [ "${{ steps.hold.outcome }}" != "failure" ]; then
+            echo "Expected with-map fixture to fail" >&2
+            exit 1
+          fi
