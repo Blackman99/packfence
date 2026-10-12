@@ -14,12 +14,18 @@ In March 2026, Anthropic accidentally published Claude Code source maps in `@ant
 ## Install
 
 ```bash
-# from GitHub (v0.1.0)
-npx github:Blackman99/packfence
+# from GitHub (builds on install)
+npm install -g github:Blackman99/packfence
+packfence .
 
-# or clone / release tarball
-npm install github:Blackman99/packfence
+# one-shot without global install
+npx --yes github:Blackman99/packfence
+
+# or the release tarball
+npm install https://github.com/Blackman99/packfence/releases/download/v0.1.0/packfence-0.1.0.tgz
 ```
+
+Not on the npm registry yet (no auth on the publish machine). Use GitHub until then.
 
 ## Usage
 

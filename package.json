@@ -25,7 +25,8 @@
     "lint": "tsc -p tsconfig.json --noEmit",
     "test": "node --import tsx --test test/*.test.ts",
     "prepack": "npm run build",
-    "packfence:self": "node dist/cli.js ."
+    "packfence:self": "node dist/cli.js .",
+    "prepare": "npm run build"
   },
   "engines": {
     "node": ">=18"
