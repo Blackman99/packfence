@@ -50,20 +50,27 @@
     return;
   }
 
+  suitcase.style.left = "0";
   let t0 = null;
-  const duration = 5000;
+  const duration = 6000;
 
   function frame(ts) {
     if (t0 == null) t0 = ts;
     const p = ((ts - t0) % duration) / duration;
-    // suitcase travels left→right across viewport
-    const x = -140 + p * (suitcase.parentElement.clientWidth + 200);
-    suitcase.style.transform = "translateX(" + x + "px)";
-    // sweep pulses
-    if (sweep) {
-      sweep.style.opacity = String(0.25 + 0.5 * Math.abs(Math.sin(p * Math.PI * 4)));
+    const panel = suitcase.parentElement.clientWidth;
+    // enter from left, pause under sweep (~42%), then exit right
+    let x;
+    if (p < 0.35) {
+      x = -130 + (p / 0.35) * (panel * 0.42 + 130);
+    } else if (p < 0.55) {
+      x = panel * 0.42;
+    } else {
+      x = panel * 0.42 + ((p - 0.55) / 0.45) * (panel * 0.7);
     }
-    // marquee
+    suitcase.style.transform = "translateX(" + x + "px)";
+    if (sweep) {
+      sweep.style.opacity = String(0.25 + 0.55 * Math.abs(Math.sin(p * Math.PI * 6)));
+    }
     const w = track.scrollWidth / 2;
     track.style.transform = "translateX(" + (-(p * w)) + "px)";
     requestAnimationFrame(frame);

@@ -97,7 +97,7 @@ code, .mono { font-family: "Azeret Mono", ui-monospace, monospace; font-weight: 
 }
 .suitcase {
   position: absolute;
-  left: -140px;
+  left: 18%;
   bottom: 32%;
   width: 120px;
   height: 78px;
