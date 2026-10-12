@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Anthropic 级 source map 泄漏为何会发生 — packfence</title>
+  <meta name="description" content="带 sourcesContent 的 .js.map 如何跟着 npm pack 进 registry，以及 packfence 如何在发布前 HOLD 住这些文件。" />
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../../fonts.css" />
+  <link rel="stylesheet" href="../../style.css" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Anthropic 级 source map 泄漏为何会发生" />
+  <meta property="og:description" content="npm pack 语义、sourcesContent、默认 HOLD 规则、CLI 与 Action。" />
+  <meta property="og:url" content="https://blackman99.github.io/packfence/blog/anthropic-sourcemap-leak-zh/" />
+  <meta property="og:image" content="https://blackman99.github.io/packfence/og-image.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://blackman99.github.io/packfence/og-image.png" />
+  <style>
+    .doc { max-width: 760px; margin: 0 auto; padding: 1.5rem 1.25rem 3.5rem; }
+    .doc .bay-id { margin-bottom: 0.75rem; }
+    .doc h1 {
+      font-family: Oxanium, sans-serif;
+      font-weight: 700;
+      font-size: clamp(1.25rem, 3vw, 1.75rem);
+      letter-spacing: 0.04em;
+      color: var(--amber);
+      margin: 0 0 0.75rem;
+      line-height: 1.35;
+    }
+    .doc .meta-line {
+      font-family: "Azeret Mono", monospace;
+      font-size: 0.75rem;
+      color: var(--bone-dim);
+      margin-bottom: 1.75rem;
+    }
+    .doc h2 {
+      font-family: Oxanium, sans-serif;
+      color: var(--amber);
+      margin-top: 2.25rem;
+      font-size: 1.1rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .doc h3 {
+      font-family: Oxanium, sans-serif;
+      color: var(--bone);
+      font-size: 1rem;
+      margin-top: 1.5rem;
+    }
+    .doc p, .doc li { color: var(--bone); }
+    .doc ul.rules { list-style: none; padding: 0; }
+    .doc ul.rules li {
+      display: flex; gap: 0.75rem; align-items: flex-start;
+      padding: 0.55rem 0; border-bottom: 1px solid rgba(197,208,220,.12);
+    }
+    .lang-switch { margin: 0 0 1.5rem; font-size: 0.9rem; }
+    .callout {
+      background: var(--recess);
+      border-left: 3px solid var(--hold);
+      padding: 0.85rem 1rem;
+      margin: 1.25rem 0;
+    }
+    .callout.clear { border-left-color: var(--clear); }
+  </style>
+</head>
+<body>
+  <div class="titlebar">
+    <a href="../../"><img src="../../logo.svg" width="36" height="36" alt="" /></a>
+    <h1>PACKFENCE — BLOG</h1>
+    <span class="meta"><a href="../">← 笔记</a> · <a href="../../docs/">docs</a></span>
+  </div>
+  <main class="doc">
+    <div class="bay-id">BAY · 笔记 01 · ZH</div>
+    <h1>Anthropic 级 source map 泄漏为何会发生，以及 packfence 如何拦住</h1>
+    <div class="meta-line">2026-10-12 · 安检台笔记 · <a href="../anthropic-sourcemap-leak/">English</a></div>
+    <p class="lang-switch">Also: <a href="../anthropic-sourcemap-leak/">English version</a></p>
+
+    <p>
+      2026 年 3 月，<code>@anthropic-ai/claude-code</code> v2.1.88 把带非空
+      <code>sourcesContent</code> 的 <code>.js.map</code> 发进了 npm。
+      大约五十万行 TypeScript 随之暴露——不是因为什么高明的外泄工具，
+      而是因为 <strong>npm pack 把作者本不打算带走的文件打进了 tarball</strong>。
+    </p>
+    <div class="callout">
+      行李箱上了传送带，X 光机没开。这正是 packfence 要拦住的故障模式。
+    </div>
+
+    <h2>BAY A · 真正出了什么问题</h2>
+    <p>
+      现代 TypeScript / 打包流水线会在编译产物旁生成 source map。
+      很多 map 会把原始源码嵌进 <code>sourcesContent</code>，方便浏览器在没有单独
+      <code>.ts</code> 文件时也能显示可读堆栈。这对本地调试没问题，
+      对公共 registry 则不行。
+    </p>
+    <p>npm 的打包规则很容易看走眼：</p>
+    <ul>
+      <li>写了 <code>package.json#files</code> 时，只有匹配路径会进包（外加始终包含的文件）。</li>
+      <li>依赖 <code>.npmignore</code> / <code>.gitignore</code> 时，很容易漏掉 <code>*.map</code>。</li>
+      <li><code>npm pack --dry-run</code> 能显示真相——但前提是每次发布前有人记得跑。</li>
+    </ul>
+    <p>
+      Anthropic 级泄漏并不玄乎：<strong>一个 map + 非空 <code>sourcesContent</code> + 一次没检查 tarball 的发布</strong>。
+      现有 pack 检查工具多半偏白名单/体积，或者很少真正进 CI。
+    </p>
+
+    <h2>BAY B · 真实的 npm pack 语义</h2>
+    <p>packfence 不猜文件列表，而是直接调用：</p>
+    <pre>npm pack --dry-run --json --ignore-scripts</pre>
+    <p>
+      这与 <code>npm publish</code> 使用的 npm-packlist 路径一致。
+      会进 tarball 的文件才会被扫描——包括 <code>files</code>、<code>.npmignore</code>、
+      bundled dependencies 等（dry-run 时忽略 scripts 仅为安全）。
+    </p>
+    <div class="callout clear">
+      CLEAR：这只即将起飞的包里没有默认 HOLD 项。
+      HOLD：拒绝发布（exit 1），直到你 allowlist 或删掉该文件。
+    </div>
+
+    <h2>BAY C · 默认 HOLD 规则</h2>
+    <p>开箱即用，下列情况会把已打包路径标为 HOLD：</p>
+    <ul class="rules">
+      <li><span class="tag hold">HOLD</span><span><code>*.map</code> / <code>*.js.map</code> / <code>*.css.map</code> / <code>*.ts.map</code>（及其他 <code>*.map</code>）</span></li>
+      <li><span class="tag hold">HOLD</span><span>JSON 中带非空 <code>sourcesContent</code> 的 source map</span></li>
+      <li><span class="tag hold">HOLD</span><span><code>.env</code>、<code>*.pem</code>、<code>*.key</code>、<code>id_rsa*</code>、<code>.git/</code>、<code>node_modules/</code></span></li>
+      <li><span class="tag hold">HOLD</span><span><code>.npmrc</code>（常含 <code>_auth</code> / <code>_authToken</code>）</span></li>
+      <li><span class="tag hold">HOLD</span><span>内容启发式：AWS key id、PEM 私钥头、GitHub / npm / Slack 样式 token</span></li>
+      <li><span class="tag hold">HOLD</span><span>单文件 &gt; 20MB</span></li>
+      <li><span class="tag warn">WARN</span><span>单文件 &gt; 5MB · 解压总大小 &gt; 50MB</span></li>
+    </ul>
+    <p>
+      可通过 <code>package.json#packfence</code> 或 <code>.packfencerc.json</code>
+     （<code>allow</code> / <code>deny</code> / <code>severity</code>）覆盖。
+      故意发布的 map 可以放行；误打进去的会留在传送带上，挂上红色 HOLD。
+    </p>
+
+    <h2>BAY D · CLI 用法</h2>
+    <pre># 尚未上架 npm registry 时从 GitHub 安装
+npx --yes github:Blackman99/packfence
+
+# 安装后
+packfence .                  # 人类可读报告；HOLD 时 exit 1
+packfence . --format json
+packfence . --test           # 只报告不失败
+packfence . --list           # 同时列出全部打包路径</pre>
+    <p>
+      退出码：<code>0</code> CLEAR（或 <code>--test</code>），<code>1</code> HOLD，
+      <code>2</code> 用法错误 / npm pack 失败。支持
+      <code>human</code>、<code>json</code>、<code>github-annotations</code>、step <code>summary</code>。
+    </p>
+
+    <h2>BAY E · GitHub Action</h2>
+    <p>把安检挂进发布流水线，避免「忘了跑 dry-run」：</p>
+    <pre>- uses: Blackman99/packfence@v0.1.0
+  with:
+    path: .
+    fail: true</pre>
+    <p>
+      <code>fail: true</code>（默认）会在 HOLD 时让 job 失败。
+      放在 <code>npm publish</code> / OIDC 发布步骤之前即可。
+    </p>
+
+    <h2>BAY F · 目标线</h2>
+    <p>
+      见 <a href="https://github.com/Blackman99/packfence/blob/main/GOAL.md">GOAL.md</a>：
+      <em>在发布前告诉你，真实的 npm tarball 会不会带走 source map、密钥或其它你本不打算包含的文件——如果会，就让 CI 失败。</em>
+    </p>
+    <p>
+      暂不在范围：替你改写 <code>files</code>（路线图 v0.3 的 <code>packfence init</code>）、
+      扫描 registry 历史、SBOM、依赖 CVE。安检台只看这一只箱子、这一条传送带、这一班航班。
+    </p>
+
+    <p style="margin-top:2.5rem">
+      <a href="https://github.com/Blackman99/packfence">GitHub</a>
+      · <a href="../../">首页</a>
+      · <a href="../../docs/">文档</a>
+      · <a href="../anthropic-sourcemap-leak/">English</a>
+    </p>
+  </main>
+  <footer>
+    <nav>
+      <a href="../../">Home</a>
+      <a href="../">Blog</a>
+      <a href="../../docs/">Docs</a>
+      <a href="https://github.com/Blackman99/packfence">Repo</a>
+    </nav>
+    <div>packfence · airport baggage X-ray operator console</div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Why Anthropic-class source-map leaks happen — packfence</title>
+  <meta name="description" content="How a .js.map with sourcesContent rides npm pack into the registry, and how packfence holds the bag before publish." />
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../../fonts.css" />
+  <link rel="stylesheet" href="../../style.css" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Why Anthropic-class source-map leaks happen" />
+  <meta property="og:description" content="npm pack semantics, sourcesContent, default HOLD rules, CLI and Action." />
+  <meta property="og:url" content="https://blackman99.github.io/packfence/blog/anthropic-sourcemap-leak/" />
+  <meta property="og:image" content="https://blackman99.github.io/packfence/og-image.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://blackman99.github.io/packfence/og-image.png" />
+  <style>
+    .doc { max-width: 760px; margin: 0 auto; padding: 1.5rem 1.25rem 3.5rem; }
+    .doc .bay-id { margin-bottom: 0.75rem; }
+    .doc h1 {
+      font-family: Oxanium, sans-serif;
+      font-weight: 700;
+      font-size: clamp(1.25rem, 3vw, 1.75rem);
+      letter-spacing: 0.04em;
+      color: var(--amber);
+      margin: 0 0 0.75rem;
+      line-height: 1.25;
+    }
+    .doc .meta-line {
+      font-family: "Azeret Mono", monospace;
+      font-size: 0.75rem;
+      color: var(--bone-dim);
+      margin-bottom: 1.75rem;
+    }
+    .doc h2 {
+      font-family: Oxanium, sans-serif;
+      color: var(--amber);
+      margin-top: 2.25rem;
+      font-size: 1.1rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .doc h3 {
+      font-family: Oxanium, sans-serif;
+      color: var(--bone);
+      font-size: 1rem;
+      margin-top: 1.5rem;
+    }
+    .doc p, .doc li { color: var(--bone); }
+    .doc ul.rules { list-style: none; padding: 0; }
+    .doc ul.rules li {
+      display: flex; gap: 0.75rem; align-items: flex-start;
+      padding: 0.55rem 0; border-bottom: 1px solid rgba(197,208,220,.12);
+    }
+    .lang-switch { margin: 0 0 1.5rem; font-size: 0.9rem; }
+    .callout {
+      background: var(--recess);
+      border-left: 3px solid var(--hold);
+      padding: 0.85rem 1rem;
+      margin: 1.25rem 0;
+    }
+    .callout.clear { border-left-color: var(--clear); }
+  </style>
+</head>
+<body>
+  <div class="titlebar">
+    <a href="../../"><img src="../../logo.svg" width="36" height="36" alt="" /></a>
+    <h1>PACKFENCE — BLOG</h1>
+    <span class="meta"><a href="../">← notes</a> · <a href="../../docs/">docs</a></span>
+  </div>
+  <main class="doc">
+    <div class="bay-id">BAY · NOTE 01 · EN</div>
+    <h1>Why Anthropic-class source-map leaks happen — and how packfence fences them</h1>
+    <div class="meta-line">2026-10-12 · operator console note · <a href="../anthropic-sourcemap-leak-zh/">中文版</a></div>
+    <p class="lang-switch">Also: <a href="../anthropic-sourcemap-leak-zh/">Anthropic 级 source map 泄漏（中文）</a></p>
+
+    <p>
+      In March 2026, <code>@anthropic-ai/claude-code</code> v2.1.88 published a
+      <code>.js.map</code> whose JSON carried non-empty <code>sourcesContent</code>.
+      That one file exposed on the order of half a million lines of TypeScript —
+      not because someone ran a exotic exfil tool, but because <strong>npm pack
+      happily included a file the authors did not mean to ship</strong>.
+    </p>
+    <div class="callout">
+      The suitcase left the belt. The X-ray never ran. That is the failure mode
+      packfence exists to catch.
+    </div>
+
+    <h2>BAY A · What actually went wrong</h2>
+    <p>
+      Modern TypeScript / bundler pipelines emit source maps next to compiled JS.
+      Many maps embed the original sources under <code>sourcesContent</code> so
+      browsers can show readable stacks without fetching separate <code>.ts</code> files.
+      That is fine for local debugging. It is not fine on the public registry.
+    </p>
+    <p>
+      npm’s packing rules are easy to misread:
+    </p>
+    <ul>
+      <li>If you set <code>package.json#files</code>, only matching paths are packed (plus always-included files).</li>
+      <li>If you rely on <code>.npmignore</code> / <code>.gitignore</code>, omissions are easy to miss for <code>*.map</code>.</li>
+      <li><code>npm pack --dry-run</code> shows the truth — but only when someone remembers to run it before every publish.</li>
+    </ul>
+    <p>
+      Anthropic-class leaks are not exotic. They are <strong>a map file + non-empty
+      <code>sourcesContent</code> + a publish that never inspected the tarball</strong>.
+      Existing “pack linters” are often allowlist/size focused, or barely used in CI.
+    </p>
+
+    <h2>BAY B · Real npm pack semantics</h2>
+    <p>
+      packfence does not guess the file list. It shells out to:
+    </p>
+    <pre>npm pack --dry-run --json --ignore-scripts</pre>
+    <p>
+      That is the same npm-packlist path <code>npm publish</code> uses. Whatever would
+      enter the tarball is what gets scanned — <code>files</code>, <code>.npmignore</code>,
+      bundled dependencies, lifecycle quirks included (scripts ignored only for the dry-run safety).
+    </p>
+    <div class="callout clear">
+      CLEAR means: the exact bag that would fly is empty of default HOLD items.
+      HOLD means: refuse publish (exit 1) until you allowlist or remove the file.
+    </div>
+
+    <h2>BAY C · Default HOLD rules</h2>
+    <p>Out of the box, these put a packed path on HOLD:</p>
+    <ul class="rules">
+      <li><span class="tag hold">HOLD</span><span><code>*.map</code> / <code>*.js.map</code> / <code>*.css.map</code> / <code>*.ts.map</code> (and other <code>*.map</code>)</span></li>
+      <li><span class="tag hold">HOLD</span><span>Source maps whose JSON has non-empty <code>sourcesContent</code></span></li>
+      <li><span class="tag hold">HOLD</span><span><code>.env</code>, <code>*.pem</code>, <code>*.key</code>, <code>id_rsa*</code>, <code>.git/</code>, <code>node_modules/</code></span></li>
+      <li><span class="tag hold">HOLD</span><span><code>.npmrc</code> (often carries <code>_auth</code> / <code>_authToken</code>)</span></li>
+      <li><span class="tag hold">HOLD</span><span>Content heuristics: AWS key ids, PEM private-key headers, GitHub / npm / Slack-looking tokens</span></li>
+      <li><span class="tag hold">HOLD</span><span>Individual file &gt; 20MB</span></li>
+      <li><span class="tag warn">WARN</span><span>File &gt; 5MB · total unpacked &gt; 50MB</span></li>
+    </ul>
+    <p>
+      Override via <code>package.json#packfence</code> or <code>.packfencerc.json</code>
+      (<code>allow</code> / <code>deny</code> / <code>severity</code>). Intentional maps can be allowlisted;
+      accidental ones stay on the belt with a red HOLD tag.
+    </p>
+
+    <h2>BAY D · CLI usage</h2>
+    <pre># from GitHub until the package is on the npm registry
+npx --yes github:Blackman99/packfence
+
+# or after install
+packfence .                  # human report; exit 1 on HOLD
+packfence . --format json
+packfence . --test           # report without failing
+packfence . --list           # also print every packed path</pre>
+    <p>
+      Exit codes: <code>0</code> CLEAR (or <code>--test</code>), <code>1</code> HOLD,
+      <code>2</code> usage / npm pack failure. Formats include
+      <code>human</code>, <code>json</code>, <code>github-annotations</code>, and step <code>summary</code>.
+    </p>
+
+    <h2>BAY E · GitHub Action</h2>
+    <p>Fence the publish job so “I forgot to run dry-run” cannot ship:</p>
+    <pre>- uses: Blackman99/packfence@v0.1.0
+  with:
+    path: .
+    fail: true</pre>
+    <p>
+      Set <code>fail: true</code> (default) to exit non-zero on HOLD findings.
+      Pair it with your release workflow before <code>npm publish</code> / OIDC publish steps.
+    </p>
+
+    <h2>BAY F · Goal line</h2>
+    <p>
+      From <a href="https://github.com/Blackman99/packfence/blob/main/GOAL.md">GOAL.md</a>:
+      <em>Tell you, before you publish, whether the exact npm tarball would ship
+      source maps, secrets, or other files you did not mean to include — and fail
+      CI if it would.</em>
+    </p>
+    <p>
+      Not in scope (yet): rewriting your <code>files</code> field for you
+      (<code>packfence init</code> is roadmap v0.3), scanning registry history, SBOM, or dependency CVEs.
+      The operator console watches this bag, this belt, this flight.
+    </p>
+
+    <p style="margin-top:2.5rem">
+      <a href="https://github.com/Blackman99/packfence">GitHub</a>
+      · <a href="../../">Landing</a>
+      · <a href="../../docs/">Docs</a>
+      · <a href="../anthropic-sourcemap-leak-zh/">中文版</a>
+    </p>
+  </main>
+  <footer>
+    <nav>
+      <a href="../../">Home</a>
+      <a href="../">Blog</a>
+      <a href="../../docs/">Docs</a>
+      <a href="https://github.com/Blackman99/packfence">Repo</a>
+    </nav>
+    <div>packfence · airport baggage X-ray operator console</div>
+  </footer>
+</body>
+</html>

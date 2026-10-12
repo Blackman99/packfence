@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>packfence blog — operator notes</title>
+  <meta name="description" content="Technical notes from the packfence operator console: npm pack leaks, source maps, and pre-publish fences." />
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../fonts.css" />
+  <link rel="stylesheet" href="../style.css" />
+  <meta property="og:title" content="packfence blog" />
+  <meta property="og:description" content="Operator notes on npm pack leaks and Anthropic-class source-map HOLD rules." />
+  <meta property="og:image" content="https://blackman99.github.io/packfence/og-image.png" />
+  <meta property="og:url" content="https://blackman99.github.io/packfence/blog/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://blackman99.github.io/packfence/og-image.png" />
+  <style>
+    .doc { max-width: 760px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+    .doc h2 { font-family: Oxanium, sans-serif; color: var(--amber); margin-top: 2rem; font-size: 1.15rem; letter-spacing: 0.04em; }
+    .post-list { list-style: none; padding: 0; margin: 1.5rem 0 0; }
+    .post-list li {
+      border: 1px solid rgba(197,208,220,.18);
+      background: var(--recess);
+      padding: 1rem 1.1rem;
+      margin-bottom: 0.75rem;
+    }
+    .post-list .bay-id { margin-bottom: 0.35rem; }
+    .post-list a.title {
+      font-family: Oxanium, sans-serif;
+      font-weight: 600;
+      font-size: 1.05rem;
+      color: var(--amber);
+      text-decoration: none;
+    }
+    .post-list a.title:hover { color: var(--bone); }
+    .post-list .lang { font-family: "Azeret Mono", monospace; font-size: 0.75rem; color: var(--bone-dim); margin-left: 0.5rem; }
+    .post-list p { margin: 0.45rem 0 0; color: var(--bone-dim); font-size: 0.95rem; }
+  </style>
+</head>
+<body>
+  <div class="titlebar">
+    <a href="../"><img src="../logo.svg" width="36" height="36" alt="" /></a>
+    <h1>PACKFENCE — BLOG</h1>
+    <span class="meta"><a href="../">← console</a> · <a href="../docs/">docs</a></span>
+  </div>
+  <main class="doc">
+    <p class="tagline" style="margin:0">
+      Operator notes from the baggage X-ray console — why npm tarballs leak, and how HOLD rules catch them before <code>npm publish</code>.
+    </p>
+    <ul class="post-list">
+      <li>
+        <div class="bay-id">BAY · NOTE 01</div>
+        <a class="title" href="anthropic-sourcemap-leak/">Why Anthropic-class source-map leaks happen — and how packfence fences them</a>
+        <span class="lang">EN</span>
+        <p>npm pack semantics, <code>sourcesContent</code>, default HOLD rules, CLI and Action usage.</p>
+      </li>
+      <li>
+        <div class="bay-id">BAY · 笔记 01</div>
+        <a class="title" href="anthropic-sourcemap-leak-zh/">Anthropic 级 source map 泄漏为何会发生，以及 packfence 如何拦住</a>
+        <span class="lang">ZH</span>
+        <p>真实 <code>npm pack</code> 文件列表、默认 HOLD 规则、CLI 与 GitHub Action 用法。</p>
+      </li>
+    </ul>
+  </main>
+  <footer>
+    <nav>
+      <a href="../">Home</a>
+      <a href="../docs/">Docs</a>
+      <a href="https://github.com/Blackman99/packfence">Repo</a>
+      <a href="https://github.com/Blackman99/packfence/blob/main/GOAL.md">GOAL.md</a>
+    </nav>
+    <div>packfence · airport baggage X-ray operator console</div>
+  </footer>
+</body>
+</html>
