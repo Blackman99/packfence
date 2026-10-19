@@ -22,7 +22,7 @@ packfence .
 npx --yes github:Blackman99/packfence
 
 # or the release tarball
-npm install https://github.com/Blackman99/packfence/releases/download/v0.1.0/packfence-0.1.0.tgz
+npm install https://github.com/Blackman99/packfence/releases/download/v0.2.0/packfence-0.2.0.tgz
 ```
 
 Not on the npm registry yet (no auth on the publish machine). Use GitHub until then.
@@ -76,13 +76,13 @@ RESULT: HOLD — 1 of 2 bags held, refuse publish (exit 1)
 ## GitHub Action
 
 ```yaml
-- uses: Blackman99/packfence@v0.1.0
+- uses: Blackman99/packfence@v0.2.0
   with:
     path: .
     fail: true
 ```
 
-Workspaces and SARIF upload to the Security tab (on `main` now, in the next release):
+Workspaces and SARIF upload to the Security tab (since v0.2.0):
 
 ```yaml
 permissions:
@@ -90,7 +90,7 @@ permissions:
   security-events: write
 steps:
   - uses: actions/checkout@v4
-  - uses: Blackman99/packfence@main
+  - uses: Blackman99/packfence@v0.2.0
     with:
       workspaces: true
       sarif: packfence.sarif

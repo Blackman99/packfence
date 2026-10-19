@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased (v0.2.0)
+## v0.2.0 — 2026-10-19
 
 ### Added
 - **Workspaces**: `--workspaces` / `-w` (and Action input `workspaces`) scans every publishable npm / Yarn workspace package, skipping `private: true` ones. Private workspace roots are expanded automatically. Root config applies to every package; package `allow` / `deny` are appended.

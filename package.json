@@ -1,6 +1,6 @@
 {
   "name": "packfence",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Tell you, before you publish, whether the exact npm tarball would ship source maps, secrets, or other files you did not mean to include.",
   "type": "module",
   "bin": {

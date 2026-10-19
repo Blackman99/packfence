@@ -114,7 +114,7 @@ packfence . --sarif packfence.sarif   # keep the human report on stdout</pre>
   security-events: write   # only for SARIF upload
 steps:
   - uses: actions/checkout@v4
-  - uses: Blackman99/packfence@main   # v0.1.0 lacks workspaces/sarif
+  - uses: Blackman99/packfence@v0.2.0
     with:
       path: .
       config: ""
