@@ -7,21 +7,34 @@ branding:
 
 inputs:
   path:
-    description: "Path to the package directory to scan (default: .)"
+    description: "Path to the package directory to scan, relative to the repo root (default: .)"
     required: false
     default: "."
   config:
-    description: "Optional path to a packfence config JSON file"
+    description: "Optional path to a packfence config JSON file (relative to path)"
     required: false
     default: ""
   fail:
     description: "Fail the step on HOLD findings (true/false)"
     required: false
     default: "true"
+  workspaces:
+    description: "Scan every publishable npm/Yarn workspace package under path (true/false). Private workspace roots are expanded automatically."
+    required: false
+    default: "false"
+  sarif:
+    description: "Write a SARIF 2.1.0 report to this file (e.g. packfence.sarif) for github/codeql-action/upload-sarif. Empty = no SARIF."
+    required: false
+    default: ""
   version:
     description: "packfence version to install from npm, or 'local' to use action path"
     required: false
     default: "local"
+
+outputs:
+  sarif-file:
+    description: "Absolute path of the SARIF report, when the sarif input is set"
+    value: ${{ steps.run.outputs.sarif-file }}
 
 runs:
   using: "composite"
@@ -33,26 +46,43 @@ runs:
     - name: Install packfence
       shell: bash
       working-directory: ${{ github.action_path }}
+      env:
+        PF_VERSION: ${{ inputs.version }}
       run: |
         set -euo pipefail
-        if [ "${{ inputs.version }}" = "local" ]; then
+        if [ "$PF_VERSION" = "local" ]; then
           npm install --ignore-scripts
           npm run build
           echo "PACKFENCE_BIN=${{ github.action_path }}/dist/cli.js" >> "$GITHUB_ENV"
         else
-          npm install -g "packfence@${{ inputs.version }}"
-          echo "PACKFENCE_BIN=packfence" >> "$GITHUB_ENV"
+          npm install -g "packfence@$PF_VERSION"
+          echo "PACKFENCE_BIN=$(npm root -g)/packfence/dist/cli.js" >> "$GITHUB_ENV"
         fi
     - name: Run packfence
+      id: run
       shell: bash
-      working-directory: ${{ inputs.path }}
+      # Run from the repo root so annotation and SARIF paths are repo-relative.
+      working-directory: ${{ github.workspace }}
+      env:
+        PF_PATH: ${{ inputs.path }}
+        PF_CONFIG: ${{ inputs.config }}
+        PF_FAIL: ${{ inputs.fail }}
+        PF_WORKSPACES: ${{ inputs.workspaces }}
+        PF_SARIF: ${{ inputs.sarif }}
       run: |
         set -euo pipefail
-        ARGS=(--format github-annotations)
-        if [ -n "${{ inputs.config }}" ]; then
-          ARGS+=(--config "${{ inputs.config }}")
+        ARGS=("$PF_PATH" --format github-annotations)
+        if [ -n "$PF_CONFIG" ]; then
+          ARGS+=(--config "$PF_CONFIG")
         fi
-        if [ "${{ inputs.fail }}" != "true" ]; then
+        if [ "$PF_FAIL" != "true" ]; then
           ARGS+=(--test)
         fi
-        node "$PACKFENCE_BIN" . "${ARGS[@]}"
+        if [ "$PF_WORKSPACES" = "true" ]; then
+          ARGS+=(--workspaces)
+        fi
+        if [ -n "$PF_SARIF" ]; then
+          ARGS+=(--sarif "$PF_SARIF")
+          echo "sarif-file=$(realpath -m "$PF_SARIF")" >> "$GITHUB_OUTPUT"
+        fi
+        node "$PACKFENCE_BIN" "${ARGS[@]}"

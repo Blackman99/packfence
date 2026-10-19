@@ -1,0 +1,13 @@
+{
+  "name": "monorepo-root",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "!packages/ignored"
+  ],
+  "packfence": {
+    "deny": [
+      "**/*.tmp"
+    ]
+  }
+}

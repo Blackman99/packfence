@@ -1,0 +1,1 @@
+{"version":3,"sources":["../src/cli.ts"],"sourcesContent":["console.log(\"cli\")"],"mappings":"AAAA"}

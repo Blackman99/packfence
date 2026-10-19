@@ -7,6 +7,7 @@ import type {
   ScanResult,
   Severity,
 } from "./types.js";
+import { scanText } from "./secrets.js";
 
 function globToRegExp(pat: string): RegExp {
   const rx =
@@ -97,38 +98,6 @@ const SECRET_NAME_PATTERNS: Array<{ rule: string; test: (p: string) => boolean; 
 
 const SOURCE_MAP_EXT = /\.(js|css|ts|mjs|cjs|jsx|tsx)\.map$/i;
 const ANY_MAP = /\.map$/i;
-
-const CONTENT_HEURISTICS: Array<{
-  rule: string;
-  re: RegExp;
-  message: string;
-}> = [
-  {
-    rule: "content-aws-key",
-    re: /AKIA[0-9A-Z]{16}/,
-    message: "Looks like an AWS access key id",
-  },
-  {
-    rule: "content-private-key",
-    re: /-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----/,
-    message: "Contains a private key PEM header",
-  },
-  {
-    rule: "content-github-token",
-    re: /\bgh[pousr]_[A-Za-z0-9_]{20,}\b/,
-    message: "Looks like a GitHub token",
-  },
-  {
-    rule: "content-npm-token",
-    re: /\bnpm_[A-Za-z0-9]{36,}\b/,
-    message: "Looks like an npm access token",
-  },
-  {
-    rule: "content-slack-token",
-    re: /\bxox[baprs]-[A-Za-z0-9-]{10,}\b/,
-    message: "Looks like a Slack token",
-  },
-];
 
 function severityFor(
   rule: string,
@@ -239,18 +208,20 @@ function checkContent(
   } catch {
     return;
   }
-  for (const h of CONTENT_HEURISTICS) {
-    if (h.re.test(text)) {
-      const sev = severityFor(h.rule, "fail", cfg.severity);
-      if (sev === "allow") continue;
-      findings.push({
-        path: file.path,
-        rule: h.rule,
-        severity: sev,
-        message: h.message,
-        size: file.size,
-      });
-    }
+  for (const h of scanText(text)) {
+    const sev = severityFor(h.rule, h.severity, cfg.severity);
+    if (sev === "allow") continue;
+    findings.push({
+      path: file.path,
+      rule: h.rule,
+      severity: sev,
+      message: h.message,
+      size: file.size,
+      line: h.line,
+      column: h.column,
+      redacted: h.redacted,
+      matches: h.matches,
+    });
   }
 }
 

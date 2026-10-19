@@ -12,6 +12,7 @@
     { path: "LICENSE", status: "clear" },
     { path: "dist/index.js.map", status: "hold", note: "sourcesContent" },
     { path: ".env", status: "hold", note: "secret-env" },
+    { path: "lib/config.js:12", status: "hold", note: "stripe-key sk_l…r9Qa" },
     { path: "dist/cli.js", status: "clear" },
   ];
 

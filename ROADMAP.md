@@ -7,10 +7,10 @@
 - Formats: human, json, github-annotations / step summary
 - GitHub Action + tests + landing site
 
-## v0.2
-- Richer secret heuristics (entropy, more token patterns)
-- SARIF output for code-scanning upload
-- Monorepo / npm workspaces support (scan each publishable package)
+## v0.2 — on main, release pending
+- [x] Richer secret heuristics: 10 more exact token formats (HOLD), entropy / URL-credential / Google-key heuristics (WARN), `file:line:col` + redacted preview
+- [x] SARIF 2.1.0 output (`--format sarif`, `--sarif <file>`, Action `sarif` input) for code-scanning upload
+- [x] Monorepo / npm + Yarn workspaces (`--workspaces`, Action `workspaces` input): scan each publishable package, skip private ones, layered config
 
 ## v0.3
 - `packfence init` — suggest a safe `files` allowlist from the current pack
