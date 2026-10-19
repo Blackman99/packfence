@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="../fonts.css" />
   <link rel="stylesheet" href="../style.css" />
   <meta property="og:title" content="packfence docs" />
-  <meta property="og:description" content="CLI flags, config, Action inputs, exit codes." />
+  <meta property="og:description" content="CLI flags, rules, workspaces, SARIF, config, Action inputs, exit codes." />
   <meta property="og:image" content="https://blackman99.github.io/packfence/og-image.png" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:image" content="https://blackman99.github.io/packfence/og-image.png" />
@@ -28,36 +28,116 @@
     <span class="meta"><a href="../">← console</a> · <a href="../blog/">blog</a></span>
   </div>
   <main class="doc">
-    <h2>CLI</h2>
-    <pre>packfence [path] [--format human|json|github-annotations|summary]
+    <h2 id="cli">CLI</h2>
+    <pre>packfence [path] [--format human|json|github-annotations|summary|sarif]
+          [--sarif file] [--output file] [--workspaces]
           [--config file] [--list] [--test] [--fail|--no-fail]</pre>
     <table>
       <tr><th>Flag</th><th>Meaning</th></tr>
-      <tr><td><code>--format</code></td><td>Output style. Default <code>human</code>.</td></tr>
-      <tr><td><code>--config</code></td><td>Path to JSON config (else <code>.packfencerc.json</code> / <code>package.json#packfence</code>).</td></tr>
+      <tr><td><code>--format</code></td><td>Output style. Default <code>human</code>. <code>sarif</code> prints SARIF 2.1.0.</td></tr>
+      <tr><td><code>--sarif &lt;file&gt;</code></td><td>Also write a SARIF 2.1.0 report to a file, whatever <code>--format</code> is.</td></tr>
+      <tr><td><code>--output</code>, <code>-o</code></td><td>Write the <code>--format</code> report to a file instead of stdout.</td></tr>
+      <tr><td><code>--workspaces</code>, <code>-w</code></td><td>Scan every publishable npm / Yarn workspace package under <code>path</code>.</td></tr>
+      <tr><td><code>--config</code></td><td>Path to JSON config, relative to <code>path</code> (else <code>.packfencerc.json</code> / <code>package.json#packfence</code>).</td></tr>
       <tr><td><code>--list</code></td><td>Also print every packed file path + size.</td></tr>
       <tr><td><code>--test</code></td><td>Report HOLD findings but exit 0.</td></tr>
       <tr><td><code>--fail</code></td><td>Exit 1 on fail findings (default).</td></tr>
     </table>
+    <p>Report paths (annotations, SARIF, <code>--workspaces</code> bag headers) are relative to the directory you run from, so run from the repo root.</p>
 
-    <h2>Exit codes</h2>
+    <h2 id="exit-codes">Exit codes</h2>
     <table>
       <tr><th>Code</th><th>Meaning</th></tr>
       <tr><td>0</td><td>CLEAR, or <code>--test</code></td></tr>
-      <tr><td>1</td><td>HOLD (fail-severity finding)</td></tr>
-      <tr><td>2</td><td>Usage / runtime error (e.g. npm pack failed)</td></tr>
+      <tr><td>1</td><td>HOLD (fail-severity finding in any scanned package)</td></tr>
+      <tr><td>2</td><td>Usage / runtime error (e.g. npm pack failed, unknown flag)</td></tr>
     </table>
 
-    <h2>GitHub Action</h2>
-    <pre>- uses: Blackman99/packfence@v0.1.0
-  with:
-    path: .
-    config: ""
-    fail: true
-    version: local</pre>
-    <p><code>version: local</code> builds the action checkout. Set a semver once the package is on npm.</p>
+    <h2 id="rules">Rules</h2>
+    <p>Every rule id can be re-graded in <code>severity</code> (<code>fail</code> · <code>warn</code> · <code>info</code> · <code>allow</code>). Content rules report <code>file:line:col</code> and a redacted preview such as <code>AKIA…MPLE</code>; the full secret is never printed or written to SARIF.</p>
+    <table>
+      <tr><th>Rule</th><th>Default</th><th>What it catches</th></tr>
+      <tr><td><code>source-map</code></td><td>HOLD</td><td>A <code>*.map</code> file would be published with the package.</td></tr>
+      <tr><td><code>sources-content</code></td><td>HOLD</td><td>A published source map carries non-empty <code>sourcesContent</code>, so the original source code would ship (the Claude Code v2.1.88 failure mode).</td></tr>
+      <tr><td><code>secret-env</code></td><td>HOLD</td><td>A <code>.env</code> / <code>.env.*</code> file would be published.</td></tr>
+      <tr><td><code>secret-keyfile</code></td><td>HOLD</td><td>A <code>*.pem</code>, <code>*.key</code>, <code>id_rsa*</code>, <code>*.p12</code> or <code>*.pfx</code> file would be published.</td></tr>
+      <tr><td><code>secret-npmrc</code></td><td>HOLD</td><td>An <code>.npmrc</code> would be published; these often hold registry auth tokens.</td></tr>
+      <tr><td><code>npmrc-auth</code></td><td>HOLD</td><td>The published <code>.npmrc</code> contains <code>_auth</code> / <code>_authToken</code>.</td></tr>
+      <tr><td><code>git-dir</code></td><td>HOLD</td><td>Repository metadata under <code>.git/</code> would be published.</td></tr>
+      <tr><td><code>node-modules</code></td><td>HOLD</td><td>A <code>node_modules/</code> directory would be published (outside <code>bundleDependencies</code>).</td></tr>
+      <tr><td><code>deny-glob</code></td><td>HOLD</td><td>A packed file matches one of your <code>deny</code> globs.</td></tr>
+      <tr><td><code>file-too-large</code></td><td>HOLD</td><td>A single packed file exceeds <code>maxFileBytes</code> (default 20 MB).</td></tr>
+      <tr><td><code>file-large</code></td><td>WARN</td><td>A single packed file exceeds <code>maxFileWarnBytes</code> (default 5 MB).</td></tr>
+      <tr><td><code>total-large</code></td><td>WARN</td><td>Total unpacked size exceeds <code>maxTotalBytes</code> (default 50 MB).</td></tr>
+      <tr><td><code>content-aws-key</code></td><td>HOLD</td><td>Looks like an AWS access key id. Matched by content scan of a packed text file.</td></tr>
+      <tr><td><code>content-private-key</code></td><td>HOLD</td><td>Contains a private key PEM header. Matched by content scan of a packed text file.</td></tr>
+      <tr><td><code>content-github-token</code></td><td>HOLD</td><td>Looks like a GitHub token. Matched by content scan of a packed text file.</td></tr>
+      <tr><td><code>content-npm-token</code></td><td>HOLD</td><td>Looks like an npm access token. Matched by content scan of a packed text file.</td></tr>
+      <tr><td><code>content-slack-token</code></td><td>HOLD</td><td>Looks like a Slack token. Matched by content scan of a packed text file.</td></tr>
+      <tr><td><code>content-slack-webhook</code></td><td>HOLD</td><td>Looks like a Slack incoming-webhook URL. Matched by content scan of a packed text file.</td></tr>
+      <tr><td><code>content-stripe-key</code></td><td>HOLD</td><td>Looks like a live Stripe secret key. Matched by content scan of a packed text file.</td></tr>
+      <tr><td><code>content-anthropic-key</code></td><td>HOLD</td><td>Looks like an Anthropic API key. Matched by content scan of a packed text file.</td></tr>
+      <tr><td><code>content-openai-key</code></td><td>HOLD</td><td>Looks like an OpenAI API key. Matched by content scan of a packed text file.</td></tr>
+      <tr><td><code>content-huggingface-token</code></td><td>HOLD</td><td>Looks like a Hugging Face access token. Matched by content scan of a packed text file.</td></tr>
+      <tr><td><code>content-gitlab-token</code></td><td>HOLD</td><td>Looks like a GitLab personal access token. Matched by content scan of a packed text file.</td></tr>
+      <tr><td><code>content-sendgrid-key</code></td><td>HOLD</td><td>Looks like a SendGrid API key. Matched by content scan of a packed text file.</td></tr>
+      <tr><td><code>content-google-api-key</code></td><td>WARN</td><td>Looks like a Google API key (often public in Firebase web config; confirm it is restricted). Matched by content scan of a packed text file.</td></tr>
+      <tr><td><code>content-url-credentials</code></td><td>WARN</td><td>URL embeds a username:password pair. Matched by content scan of a packed text file.</td></tr>
+      <tr><td><code>content-high-entropy</code></td><td>WARN</td><td>High-entropy string assigned to a secret-looking name. Matched by content scan of a packed text file.</td></tr>
+    </table>
+    <p>Exact token formats are HOLD. Fuzzy heuristics are WARN so they surface without blocking: <code>content-high-entropy</code> needs a secret-looking name, a quoted value of 20+ chars, mixed character classes and ≥ 4 bits/char of Shannon entropy, and skips placeholders like <code>your-api-key</code> or <code>${TOKEN}</code>.</p>
 
-    <h2>Config schema</h2>
+    <h2 id="workspaces">Workspaces (monorepos)</h2>
+    <pre>packfence . --workspaces</pre>
+    <p>
+      Expands the root <code>workspaces</code> globs (npm and Yarn, array or <code>{ "packages": [...] }</code>, <code>!negation</code> supported),
+      runs <code>npm pack --dry-run</code> inside each package, and skips <code>private: true</code> packages.
+      When the root itself is private, packfence expands its workspaces automatically, since the root can never be published.
+    </p>
+    <p>
+      Config layering: the root config applies to every package; a package's own <code>allow</code> / <code>deny</code> are appended and its
+      <code>severity</code> and size limits override. Scanning a single package directory uses only that package's config.
+    </p>
+    <p>JSON output with workspaces is <code>{ failed, warned, packages: [...], skipped: [...] }</code>.</p>
+
+    <h2 id="sarif">SARIF / code scanning</h2>
+    <pre>packfence . --format sarif -o packfence.sarif
+packfence . --sarif packfence.sarif   # keep the human report on stdout</pre>
+    <p>
+      SARIF 2.1.0 with rule metadata, <code>security-severity</code>, repo-relative <code>%SRCROOT%</code> URIs, line/column for content hits and stable
+      <code>partialFingerprints</code>, ready for <code>github/codeql-action/upload-sarif</code>.
+    </p>
+
+    <h2 id="action">GitHub Action</h2>
+    <pre>permissions:
+  contents: read
+  security-events: write   # only for SARIF upload
+steps:
+  - uses: actions/checkout@v4
+  - uses: Blackman99/packfence@main   # v0.1.0 lacks workspaces/sarif
+    with:
+      path: .
+      config: ""
+      fail: true
+      workspaces: false
+      sarif: packfence.sarif
+      version: local
+  - uses: github/codeql-action/upload-sarif@v3
+    if: always()
+    with:
+      sarif_file: packfence.sarif</pre>
+    <table>
+      <tr><th>Input</th><th>Meaning</th></tr>
+      <tr><td><code>path</code></td><td>Package directory relative to the repo root (default <code>.</code>).</td></tr>
+      <tr><td><code>config</code></td><td>Config JSON, relative to <code>path</code>.</td></tr>
+      <tr><td><code>fail</code></td><td><code>true</code> fails the step on HOLD.</td></tr>
+      <tr><td><code>workspaces</code></td><td><code>true</code> scans every publishable workspace package.</td></tr>
+      <tr><td><code>sarif</code></td><td>File to write SARIF to; exposed as the <code>sarif-file</code> output.</td></tr>
+      <tr><td><code>version</code></td><td><code>local</code> builds the action checkout; set a semver once the package is on npm.</td></tr>
+    </table>
+    <p>Annotations and SARIF use repo-relative paths, so findings point at the right file even when <code>path</code> is a subdirectory.</p>
+
+    <h2 id="config">Config schema</h2>
     <pre>{
   "allow": ["glob"],
   "deny": ["glob"],

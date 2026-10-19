@@ -30,24 +30,47 @@ Not on the npm registry yet (no auth on the publish machine). Use GitHub until t
 ## Usage
 
 ```bash
-packfence .                  # human report; exit 1 on HOLD
+packfence .                          # human report; exit 1 on HOLD
 packfence . --format json
-packfence . --test           # report without failing
+packfence . --test                   # report without failing
+packfence . --workspaces             # monorepo: one bag per publishable package
+packfence . --sarif packfence.sarif  # also write SARIF for code scanning
+packfence . --format sarif -o packfence.sarif
 ```
 
 Example HOLD:
 
 ```
 PACKFENCE — PRE-PUBLISH SCAN
-files: 3  unpacked: 380B
+files: 4  unpacked: 186B
 
-HOLD (2)
-[HOLD] dist/index.js.map (227B)
-       source-map: Source map file would be published
-[HOLD] dist/index.js.map (227B)
-       sources-content: Source map embeds non-empty sourcesContent …
+HOLD (3)
+[HOLD] .env (29B)
+       secret-env: Environment file must not be published
+[HOLD] .env:1:9 (29B)
+       content-aws-key: Looks like an AWS access key id  [AKIA…MPLE]
+[HOLD] notes.txt:1:7 (33B)
+       content-aws-key: Looks like an AWS access key id  [AKIA…MPLE]
 
 RESULT: HOLD — refuse publish (exit 1)
+```
+
+Secrets are reported as `file:line:col` with a redacted preview; the full value is never printed or written to SARIF.
+
+### Monorepos
+
+`--workspaces` expands npm / Yarn `workspaces` globs (with `!negation`), runs the real `npm pack --dry-run` in each package and skips `private: true` ones. A private workspace root is expanded automatically. Root `allow` / `deny` apply to every package; a package's own lists are appended.
+
+```
+PACKFENCE — PRE-PUBLISH SCAN · 2 bags on the belt
+
+── BAG 1/2 · @fixture/cli@2.1.0 · packages/cli · HOLD
+[HOLD] dist/cli.js.map (102B)
+       sources-content: Source map embeds non-empty sourcesContent (original source would ship)
+── BAG 2/2 · @fixture/core@1.0.0 · packages/core · CLEAR
+── SKIP · @fixture/internal · packages/internal · private: true
+
+RESULT: HOLD — 1 of 2 bags held, refuse publish (exit 1)
 ```
 
 ## GitHub Action
@@ -59,18 +82,45 @@ RESULT: HOLD — refuse publish (exit 1)
     fail: true
 ```
 
+Workspaces and SARIF upload to the Security tab (on `main` now, in the next release):
+
+```yaml
+permissions:
+  contents: read
+  security-events: write
+steps:
+  - uses: actions/checkout@v4
+  - uses: Blackman99/packfence@main
+    with:
+      workspaces: true
+      sarif: packfence.sarif
+  - uses: github/codeql-action/upload-sarif@v3
+    if: always()
+    with:
+      sarif_file: packfence.sarif
+```
+
 Action name (Marketplace): **packfence — npm pack pre-publish fence**
 
-## Default rules (HOLD)
+## Default rules
+
+HOLD (fail):
 
 - `*.map` / `*.js.map` / `*.css.map` / `*.ts.map`
 - Source maps whose JSON contains non-empty `sourcesContent`
 - `.env` / `.env.*` / `*.pem` / `*.key` / `id_rsa*` / `.git/` / `node_modules/`
 - `.npmrc` with `_auth` / `_authToken`
-- Secret content heuristics (AWS keys, PEM headers, GitHub/npm/Slack tokens)
-- File > 20MB (fail) · > 5MB (warn) · total unpacked > 50MB (warn)
+- Exact token formats in packed text: AWS (`AKIA`/`ASIA`), GitHub (`ghp_`… and `github_pat_`), npm, Slack tokens and webhooks, Stripe live keys, Anthropic, OpenAI, Hugging Face, GitLab, SendGrid, private-key PEM blocks
+- File > 20MB
 
-Config via `package.json#packfence` or `.packfencerc.json` (`allow` / `deny` / `severity`).
+WARN:
+
+- High-entropy strings assigned to `secret` / `token` / `apiKey`-style names
+- `scheme://user:password@host` URLs (placeholders like `user:password@localhost` are ignored)
+- Google API keys (often intentionally public in Firebase config)
+- File > 5MB · total unpacked > 50MB
+
+Config via `package.json#packfence` or `.packfencerc.json` (`allow` / `deny` / `severity`). Every rule id is listed in the [docs](https://blackman99.github.io/packfence/docs/#rules).
 
 ## Docs
 

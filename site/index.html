@@ -80,8 +80,9 @@
       <ul class="rules">
         <li><span class="tag hold">HOLD</span><span><code>*.map</code> / <code>*.js.map</code> and maps whose JSON has non-empty <code>sourcesContent</code></span></li>
         <li><span class="tag hold">HOLD</span><span><code>.env</code>, <code>*.pem</code>, <code>*.key</code>, <code>id_rsa*</code>, <code>.git/</code>, <code>node_modules/</code>, <code>.npmrc</code> with <code>_auth</code></span></li>
-        <li><span class="tag hold">HOLD</span><span>Secret content heuristics (AWS keys, private key headers, GitHub/npm tokens) in packed text files</span></li>
+        <li><span class="tag hold">HOLD</span><span>Exact token formats in packed text: AWS, GitHub (incl. fine-grained <code>github_pat_</code>), npm, Slack + webhooks, Stripe live, Anthropic, OpenAI, Hugging Face, GitLab, SendGrid, private-key PEM blocks. Reported as <code>file:line:col</code> with a redacted preview — the secret itself is never printed.</span></li>
         <li><span class="tag hold">HOLD</span><span>Individual file &gt; 20MB</span></li>
+        <li><span class="tag warn">WARN</span><span>High-entropy values bound to <code>secret</code> / <code>token</code> / <code>apiKey</code> names · <code>scheme://user:pass@host</code> · Google API keys (often public in Firebase config)</span></li>
         <li><span class="tag warn">WARN</span><span>Individual file &gt; 5MB · total unpacked &gt; 50MB</span></li>
       </ul>
     </section>
@@ -95,8 +96,46 @@
     fail: true</pre>
     </section>
 
+    <section class="bay" id="workspaces">
+      <div class="bay-id">BAY 05 · MULTI-BAG BELT</div>
+      <h2>Monorepos: every publishable package gets its own bag</h2>
+      <p>
+        <code>--workspaces</code> expands npm / Yarn <code>workspaces</code> globs (with <code>!negation</code>), runs the real
+        <code>npm pack --dry-run</code> in each package, and skips <code>private: true</code> ones — npm would refuse to publish them anyway.
+        A private workspace root is expanded automatically.
+      </p>
+      <ol class="manifest" aria-label="Example workspace scan">
+        <li class="row hold"><span class="bag">BAG 1/2</span><code>@acme/cli@2.1.0</code><span class="dir">packages/cli</span><span class="verdict">HOLD<span class="why"> · sourcesContent</span></span></li>
+        <li class="row clear"><span class="bag">BAG 2/2</span><code>@acme/core@1.0.0</code><span class="dir">packages/core</span><span class="verdict">CLEAR</span></li>
+        <li class="row skip"><span class="bag">SKIP</span><code>@acme/internal</code><span class="dir">packages/internal</span><span class="verdict">private</span></li>
+      </ol>
+      <p class="fine">Root <code>allow</code> / <code>deny</code> apply to every bag; a package's own lists are appended and its limits override.</p>
+    </section>
+
+    <section class="bay" id="sarif">
+      <div class="bay-id">BAY 06 · CODE SCANNING</div>
+      <h2>SARIF: HOLD findings land in the Security tab</h2>
+      <pre>permissions:
+  security-events: write
+steps:
+  - uses: Blackman99/packfence@main  # SARIF + workspaces: main until v0.2.0
+    with:
+      workspaces: true
+      sarif: packfence.sarif
+  - uses: github/codeql-action/upload-sarif@v3
+    if: always()
+    with:
+      sarif_file: packfence.sarif</pre>
+      <div class="alert" aria-label="Example code scanning alert">
+        <span class="sev">ERROR</span>
+        <span class="what"><strong>Source map embeds original source</strong> · packfence · <code>sources-content</code></span>
+        <span class="where"><code>packages/cli/dist/cli.js.map</code> · security severity 8.5</span>
+      </div>
+      <p class="fine">Or locally: <code>packfence . --format sarif -o packfence.sarif</code>. Paths are repo-relative, so alerts point at the right file.</p>
+    </section>
+
     <section class="bay" id="config">
-      <div class="bay-id">BAY 05 · CONFIG</div>
+      <div class="bay-id">BAY 07 · CONFIG</div>
       <h2>Allow / deny without rewriting the binary</h2>
       <pre>{
   "packfence": {
@@ -109,7 +148,7 @@
     </section>
 
     <section class="bay" id="blog">
-      <div class="bay-id">BAY 06 · OPERATOR NOTES</div>
+      <div class="bay-id">BAY 08 · OPERATOR NOTES</div>
       <h2>Why the leak happened — EN + ZH</h2>
       <p>
         Technical write-up on Anthropic-class <code>sourcesContent</code> leaks,

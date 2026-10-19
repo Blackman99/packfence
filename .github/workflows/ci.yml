@@ -50,3 +50,28 @@ jobs:
             echo "Expected with-map fixture to fail" >&2
             exit 1
           fi
+      - name: Scan monorepo fixture with workspaces + SARIF (expect fail)
+        id: ws
+        continue-on-error: true
+        uses: ./
+        with:
+          path: test/fixtures/monorepo
+          workspaces: "true"
+          sarif: packfence.sarif
+      - name: Assert workspaces HOLD and SARIF written
+        env:
+          SARIF_FILE: ${{ steps.ws.outputs.sarif-file }}
+        run: |
+          if [ "${{ steps.ws.outcome }}" != "failure" ]; then
+            echo "Expected monorepo fixture to fail" >&2
+            exit 1
+          fi
+          test -s "$SARIF_FILE"
+          node -e '
+            const s = JSON.parse(require("fs").readFileSync(process.env.SARIF_FILE, "utf8"));
+            const uris = s.runs[0].results.map(r => r.locations[0].physicalLocation.artifactLocation.uri);
+            if (s.version !== "2.1.0" || !uris.includes("test/fixtures/monorepo/packages/cli/dist/cli.js.map")) {
+              console.error("bad SARIF", uris); process.exit(1);
+            }
+            console.log("SARIF ok:", uris.length, "results");
+          ' 
