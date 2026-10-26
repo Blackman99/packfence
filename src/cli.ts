@@ -9,6 +9,8 @@ import {
   formatStepSummary,
 } from "./format.js";
 import { formatSarif } from "./sarif.js";
+import { formatInitHuman, formatInitJson } from "./format.js";
+import { proposeFiles, writeFilesField } from "./init.js";
 import type { MultiScanResult } from "./types.js";
 
 const FORMATS = ["human", "json", "github-annotations", "summary", "sarif"] as const;
@@ -18,6 +20,7 @@ function printHelp(): void {
 
 Usage:
   packfence [path] [options]
+  packfence init [path] [--write] [--format json]
 
 Options:
   --format <name>   human | json | github-annotations | summary | sarif  (default: human)
@@ -31,6 +34,13 @@ Options:
   --test            Report what would fail but always exit 0
   --help, -h        Show help
   --version, -v     Show version
+
+Init:
+  packfence init    Suggest a package.json "files" allowlist from today's pack:
+                    keep what main/exports/bin/types point at, drop tests,
+                    sources and tool config, fence HOLD files out of kept dirs,
+                    then re-pack with the proposal to prove the result.
+  --write           Save the proposal to package.json (keeps indentation)
 
 Exit codes:
   0  CLEAR (or --test)
@@ -110,7 +120,54 @@ function writeFile(file: string, text: string): void {
   fs.writeFileSync(abs, text.endsWith("\n") ? text : text + "\n");
 }
 
+function initMain(argv: string[]): void {
+  let dir = ".";
+  let write = false;
+  let format = "human";
+  let config: string | undefined;
+  const args = [...argv];
+  while (args.length) {
+    const a = args.shift()!;
+    if (a === "--help" || a === "-h") {
+      printHelp();
+      process.exit(0);
+    } else if (a === "--write") write = true;
+    else if (a === "--json") format = "json";
+    else if (a === "--format") format = args.shift() ?? usage("--format needs a value");
+    else if (a.startsWith("--format=")) format = a.slice("--format=".length);
+    else if (a === "--config") config = args.shift() ?? usage("--config needs a value");
+    else if (a.startsWith("--config=")) config = a.slice("--config=".length);
+    else if (a === "--workspaces" || a === "-w") {
+      usage("init works on one package at a time; pass the workspace package path");
+    } else if (a.startsWith("-")) usage(`unknown init option ${a}`);
+    else dir = a;
+  }
+  if (format !== "human" && format !== "json") usage(`init --format must be human or json`);
+
+  let proposal;
+  try {
+    proposal = proposeFiles(dir, { configPath: config });
+  } catch (err) {
+    console.error(`packfence: ${err instanceof Error ? err.message : String(err)}`);
+    process.exit(2);
+  }
+  let wrote = false;
+  if (write && !proposal.unchanged) {
+    if (proposal.lostEntries.length) {
+      console.error(
+        `packfence: not writing — entry points would stop shipping: ${proposal.lostEntries.join(", ")}`,
+      );
+      process.exit(2);
+    }
+    writeFilesField(dir, proposal.files);
+    wrote = true;
+  }
+  console.log(format === "json" ? formatInitJson(proposal) : formatInitHuman(proposal, { wrote }));
+  process.exit(proposal.after.failed ? 1 : 0);
+}
+
 function main(): void {
+  if (process.argv[2] === "init") return initMain(process.argv.slice(3));
   const opts = parseArgs(process.argv.slice(2));
   if (opts.help) {
     printHelp();

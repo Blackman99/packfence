@@ -36,6 +36,8 @@ packfence . --test                   # report without failing
 packfence . --workspaces             # monorepo: one bag per publishable package
 packfence . --sarif packfence.sarif  # also write SARIF for code scanning
 packfence . --format sarif -o packfence.sarif
+packfence init                       # suggest a safe package.json "files" allowlist
+packfence init --write               # …and save it
 ```
 
 Example HOLD:
@@ -56,6 +58,43 @@ RESULT: HOLD — refuse publish (exit 1)
 ```
 
 Secrets are reported as `file:line:col` with a redacted preview; the full value is never printed or written to SARIF.
+
+### Fence it at the source: `packfence init`
+
+![packfence init demo](./demo-init.svg)
+
+No `files` field means npm ships everything that isn't ignored. `packfence init` reads today's real pack, keeps what `main` / `exports` / `bin` / `types` point at, drops tests, sources, docs and tool config, fences HOLD files out of kept directories with a negation, then **re-packs with the proposal** so the "after" line is a real `npm pack --dry-run`, not a guess. Existing `!negations` are kept. `--write` saves it to `package.json` (indentation and key order preserved); `--format json` for scripts. It refuses to write a list that would stop shipping an entry point.
+
+```
+PACKFENCE INIT — FILES ALLOWLIST PROPOSAL
+package: packfence-fixture-sloppy@1.0.0
+today:   13 files · 689B · HOLD  (no files field)
+
+KEEP
+  bin/            1 file    entry: bin.sloppy
+  dist/           2 files   entry: main
+  types/          1 file    entry: types
+  CHANGELOG.md    1 file    ships today, not dev-only
+
+DROP
+  .github/        1 file    CI config, not needed by consumers
+  docs/           1 file    documentation site, not needed by consumers
+  src/            1 file    sources; the built output is what runs
+  test/           1 file    test suite, not needed by consumers
+  tsconfig.json   1 file    TypeScript build config, not needed by consumers
+
+FENCE (excluded inside kept dirs)
+  !dist/**/*.map  1 file    HOLD source-map
+
+AUTO (npm adds these itself): LICENSE, package.json, README.md
+
+PROPOSED package.json "files":
+  ["bin","dist","types","CHANGELOG.md","!dist/**/*.map"]
+
+after:   7 files · 473B · CLEAR  (−6 files, −216B)  verified with npm pack --dry-run
+
+Run `packfence init --write` to save it to package.json.
+```
 
 ### Monorepos
 

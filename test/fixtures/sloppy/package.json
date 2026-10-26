@@ -1,0 +1,11 @@
+{
+  "name": "packfence-fixture-sloppy",
+  "version": "1.0.0",
+  "description": "A package with no files field",
+  "main": "dist/index.js",
+  "types": "types/index.d.ts",
+  "bin": {
+    "sloppy": "bin/sloppy.js"
+  },
+  "license": "MIT"
+}

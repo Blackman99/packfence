@@ -112,8 +112,23 @@
       <p class="fine">Root <code>allow</code> / <code>deny</code> apply to every bag; a package's own lists are appended and its limits override.</p>
     </section>
 
+    <section class="bay" id="init">
+      <div class="bay-id">BAY 06 · REPACK</div>
+      <h2>Don't just catch the leak — fence it at the source</h2>
+      <p>
+        <code>packfence init</code> reads your entry points (<code>main</code>, <code>exports</code>, <code>bin</code>, <code>types</code>…),
+        sorts today's tarball into keep / drop / fence, and proposes a <code>files</code> allowlist with
+        <code>!dist/**/*.map</code>-style fences wherever source maps live. Then it proves it: the proposal is re-packed with a real
+        <code>npm pack --dry-run</code> before you see it. <code>--write</code> saves it into <code>package.json</code>, keeping your formatting,
+        and refuses if any entry point would stop shipping.
+      </p>
+      <img class="demo-init" src="demo-init.svg" width="720" height="320" loading="lazy"
+        alt="packfence init: a bag of 13 files goes HOLD; src, test, docs, .github and tsconfig drop off the belt, the source map is fenced, and the re-pack is CLEAR with 7 files." />
+      <p class="fine">Per package for now; your existing <code>!negations</code> are always kept, and HOLD rules still run on the result.</p>
+    </section>
+
     <section class="bay" id="sarif">
-      <div class="bay-id">BAY 06 · CODE SCANNING</div>
+      <div class="bay-id">BAY 07 · CODE SCANNING</div>
       <h2>SARIF: HOLD findings land in the Security tab</h2>
       <pre>permissions:
   security-events: write
@@ -135,7 +150,7 @@ steps:
     </section>
 
     <section class="bay" id="config">
-      <div class="bay-id">BAY 07 · CONFIG</div>
+      <div class="bay-id">BAY 08 · CONFIG</div>
       <h2>Allow / deny without rewriting the binary</h2>
       <pre>{
   "packfence": {
@@ -148,7 +163,7 @@ steps:
     </section>
 
     <section class="bay" id="blog">
-      <div class="bay-id">BAY 08 · OPERATOR NOTES</div>
+      <div class="bay-id">BAY 09 · OPERATOR NOTES</div>
       <h2>Why the leak happened — EN + ZH</h2>
       <p>
         Technical write-up on Anthropic-class <code>sourcesContent</code> leaks,
