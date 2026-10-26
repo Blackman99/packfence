@@ -7,8 +7,8 @@
   </defs>
   <rect width="720" height="320" fill="url(#scan)"/>
   <style>
-    @media (prefers-reduced-motion: reduce) { .moving, .pulse { display: none; } .still { display: inline; } }
     .still { display: none; }
+    @media (prefers-reduced-motion: reduce) { .moving, .pulse { display: none; } .still { display: inline; } }
   </style>
   <!-- title bar -->
   <rect x="16" y="12" width="688" height="36" fill="#1a2a40"/>

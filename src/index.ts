@@ -17,3 +17,5 @@ export type {
   Severity,
   SkippedPackage,
 } from "./types.js";
+export { proposeFiles, writeFilesField, entryPoints } from "./init.js";
+export type { InitProposal, InitGroup, InitFence, InitSide, InitOptions } from "./init.js";

@@ -1,4 +1,5 @@
 import type { Finding, MultiScanResult, PackageReport, ScanResult } from "./types.js";
+import type { InitGroup, InitProposal } from "./init.js";
 
 export function fmtSize(n: number): string {
   if (n < 1024) return `${n}B`;
@@ -273,4 +274,86 @@ export function formatStepSummary(result: ScanResult | MultiScanResult): string 
     summaryTable(lines, pkg);
   }
   return lines.join("\n");
+}
+
+function pad(s: string, n: number): string {
+  return s.length >= n ? s + " " : s + " ".repeat(n - s.length);
+}
+
+function sideLine(s: { files: number; bytes: number; failed: boolean; warned: boolean }): string {
+  const v = s.failed ? "HOLD" : s.warned ? "CLEAR with warnings" : "CLEAR";
+  return `${s.files} files · ${fmtSize(s.bytes)} · ${v}`;
+}
+
+/** Human report for `packfence init`. */
+export function formatInitHuman(p: InitProposal, opts: { wrote?: boolean } = {}): string {
+  const lines: string[] = [];
+  lines.push("PACKFENCE INIT — FILES ALLOWLIST PROPOSAL");
+  lines.push(`package: ${p.name}${p.version ? `@${p.version}` : ""}`);
+  lines.push(`today:   ${sideLine(p.before)}${p.current ? `  (files: ${JSON.stringify(p.current)})` : "  (no files field)"}`);
+  lines.push("");
+  if (p.unchanged) {
+    lines.push("Your files field already matches what packfence would suggest.");
+    lines.push(p.after.failed ? "RESULT: HOLD — the allowlist is fine, but a kept file still trips a rule." : "RESULT: CLEAR — nothing to change.");
+    return lines.join("\n");
+  }
+  const width = Math.max(12, ...p.groups.map((g) => g.entry.length + 2), ...p.fences.map((f) => f.pattern.length + 2));
+  const row = (label: string, files: number, reason: string) =>
+    `  ${pad(label, width)}${pad(files === 0 ? "—" : `${files} file${files === 1 ? "" : "s"}`, 10)}${reason}`;
+  const section = (title: string, list: InitGroup[]) => {
+    if (!list.length) return;
+    lines.push(title);
+    for (const g of list) lines.push(row(g.entry + (g.isDir ? "/" : ""), g.files, g.reason));
+    lines.push("");
+  };
+  section("KEEP", p.groups.filter((g) => g.decision === "keep"));
+  section("DROP", p.groups.filter((g) => g.decision === "drop"));
+  if (p.fences.length) {
+    lines.push("FENCE (excluded inside kept dirs)");
+    for (const f of p.fences) lines.push(row(f.pattern, f.files, f.reason));
+    lines.push("");
+  }
+  const auto = p.groups.filter((g) => g.decision === "auto");
+  if (auto.length) {
+    lines.push(`AUTO (npm adds these itself): ${auto.map((g) => g.entry).join(", ")}`);
+    lines.push("");
+  }
+  lines.push(`PROPOSED package.json "files":`);
+  lines.push(`  ${JSON.stringify(p.files)}`);
+  lines.push("");
+  const n = p.removed.length;
+  const db = p.before.bytes - p.after.bytes;
+  const delta = n ? `−${n} file${n === 1 ? "" : "s"}, −${fmtSize(Math.max(0, db))}` : "same files";
+  lines.push(`after:   ${sideLine(p.after)}  (${delta})  verified with npm pack --dry-run`);
+  for (const e of p.lostEntries) lines.push(`[WARN] entry point ${e} would no longer ship — review before writing`);
+  for (const h of p.after.holds) lines.push(`[HOLD] ${h.path}: ${h.rule} — still ships (npm always packs it); fix the file itself`);
+  lines.push("");
+  if (opts.wrote) lines.push("Wrote files to package.json. Run `packfence` to confirm CLEAR.");
+  else lines.push("Run `packfence init --write` to save it to package.json.");
+  return lines.join("\n");
+}
+
+/** JSON report for `packfence init --format json`. */
+export function formatInitJson(p: InitProposal): string {
+  const strip = (s: InitProposal["before"]) => ({
+    ...s,
+    holds: s.holds.map((h) => ({ path: h.path, rule: h.rule, line: h.line, redacted: h.redacted })),
+  });
+  return JSON.stringify(
+    {
+      name: p.name,
+      version: p.version,
+      current: p.current ?? null,
+      files: p.files,
+      unchanged: p.unchanged,
+      groups: p.groups,
+      fences: p.fences,
+      before: strip(p.before),
+      after: strip(p.after),
+      removed: p.removed,
+      lostEntries: p.lostEntries,
+    },
+    null,
+    2,
+  );
 }

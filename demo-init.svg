@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 320" width="720" height="320" role="img" aria-label="packfence init demo: a package with no files field would ship 13 files and a source map; init keeps dist, bin, types and CHANGELOG, drops src, test, docs, CI config and tsconfig, fences the map, and the verified re-pack is 7 files, CLEAR">
+  <rect width="720" height="320" fill="#0a1628"/>
+  <defs><pattern id="scan" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="1" fill="#f4b942" opacity="0.06"/></pattern></defs>
+  <rect width="720" height="320" fill="url(#scan)"/>
+  <style>.still { display: none; } @media (prefers-reduced-motion: reduce) { .anim { display: none; } .still { display: inline; } }</style>
+  <rect x="16" y="12" width="688" height="36" fill="#1a2a40"/>
+  <text x="28" y="36" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="14" font-weight="700" fill="#f4b942">PACKFENCE INIT — REPACK THE BAG</text>
+  <text x="692" y="36" text-anchor="end" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#c5d0dc">packfence init --write</text>
+  <rect x="16" y="62" width="320" height="244" fill="#1a2a40"/>
+  <text x="28" y="80" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="10" fill="#c5d0dc" opacity="0.6">X-RAY · npm pack --dry-run</text>
+  <rect x="32" y="94" width="292" height="136" rx="10" fill="none" stroke="#f4b942" stroke-width="3" opacity="0.85"/>
+  <rect x="28" y="244" width="300" height="1" fill="#c5d0dc" opacity="0.25"/>
+  <text x="28" y="300" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="10" fill="#c5d0dc" opacity="0.6">OFF THE BELT</text>
+  <g class="anim">
+    <g><rect x="46" y="106" width="96" height="40" rx="3" fill="#f4b942" opacity="0.9"/><text x="52" y="130" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="11" font-weight="700" fill="#0a1628">dist/</text></g>
+    <g><rect x="152" y="106" width="58" height="40" rx="3" fill="#f4b942" opacity="0.9"/><text x="158" y="130" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="11" font-weight="700" fill="#0a1628">bin/</text></g>
+    <g><rect x="220" y="106" width="92" height="40" rx="3" fill="#f4b942" opacity="0.9"/><text x="226" y="130" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="11" font-weight="700" fill="#0a1628">types/</text></g>
+    <g>
+      <animateTransform attributeName="transform" type="translate" values="0 0;0 0;0 36;0 36;0 0" keyTimes="0;0.360;0.410;0.94;1" dur="6s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;0.360;0.410;0.94;1" dur="6s" repeatCount="indefinite"/>
+      <rect x="46" y="154" width="62" height="30" rx="3" fill="#c5d0dc" opacity="0.5"/><text x="52" y="173" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="11" font-weight="700" fill="#0a1628">src/</text>
+    </g>
+    <g opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.400;0.430;0.94;1" dur="6s" repeatCount="indefinite"/><rect x="32" y="252" width="32" height="14" rx="2" fill="#c5d0dc" opacity="0.4"/><text x="36" y="262.5" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="9" font-weight="700" fill="#0a1628">src/</text></g>
+    <g>
+      <animateTransform attributeName="transform" type="translate" values="0 0;0 0;0 36;0 36;0 0" keyTimes="0;0.395;0.445;0.94;1" dur="6s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;0.395;0.445;0.94;1" dur="6s" repeatCount="indefinite"/>
+      <rect x="116" y="154" width="62" height="30" rx="3" fill="#c5d0dc" opacity="0.5"/><text x="122" y="173" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="11" font-weight="700" fill="#0a1628">test/</text>
+    </g>
+    <g opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.435;0.465;0.94;1" dur="6s" repeatCount="indefinite"/><rect x="72" y="252" width="38" height="14" rx="2" fill="#c5d0dc" opacity="0.4"/><text x="76" y="262.5" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="9" font-weight="700" fill="#0a1628">test/</text></g>
+    <g>
+      <animateTransform attributeName="transform" type="translate" values="0 0;0 0;0 36;0 36;0 0" keyTimes="0;0.430;0.480;0.94;1" dur="6s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;0.430;0.480;0.94;1" dur="6s" repeatCount="indefinite"/>
+      <rect x="186" y="154" width="56" height="30" rx="3" fill="#c5d0dc" opacity="0.5"/><text x="192" y="173" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="11" font-weight="700" fill="#0a1628">docs/</text>
+    </g>
+    <g opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.470;0.500;0.94;1" dur="6s" repeatCount="indefinite"/><rect x="118" y="252" width="38" height="14" rx="2" fill="#c5d0dc" opacity="0.4"/><text x="122" y="262.5" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="9" font-weight="700" fill="#0a1628">docs/</text></g>
+    <g>
+      <animateTransform attributeName="transform" type="translate" values="0 0;0 0;0 36;0 36;0 0" keyTimes="0;0.465;0.515;0.94;1" dur="6s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;0.465;0.515;0.94;1" dur="6s" repeatCount="indefinite"/>
+      <rect x="250" y="154" width="62" height="30" rx="3" fill="#c5d0dc" opacity="0.5"/><text x="256" y="173" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="11" font-weight="700" fill="#0a1628">.github/</text>
+    </g>
+    <g opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.505;0.535;0.94;1" dur="6s" repeatCount="indefinite"/><rect x="164" y="252" width="54" height="14" rx="2" fill="#c5d0dc" opacity="0.4"/><text x="168" y="262.5" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="9" font-weight="700" fill="#0a1628">.github/</text></g>
+    <g>
+      <animateTransform attributeName="transform" type="translate" values="0 0;0 0;0 36;0 36;0 0" keyTimes="0;0.500;0.550;0.94;1" dur="6s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;0.500;0.550;0.94;1" dur="6s" repeatCount="indefinite"/>
+      <rect x="46" y="192" width="76" height="26" rx="3" fill="#c5d0dc" opacity="0.5"/><text x="52" y="209" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="10" font-weight="700" fill="#0a1628">tsconfig</text>
+    </g>
+    <g opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.540;0.570;0.94;1" dur="6s" repeatCount="indefinite"/><rect x="32" y="270" width="82" height="14" rx="2" fill="#c5d0dc" opacity="0.4"/><text x="36" y="280.5" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="9" font-weight="700" fill="#0a1628">tsconfig.json</text></g>
+    <g>
+      <animateTransform attributeName="transform" type="translate" values="0 0;0 0;0 36;0 36;0 0" keyTimes="0;0.535;0.585;0.94;1" dur="6s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;0.535;0.585;0.94;1" dur="6s" repeatCount="indefinite"/>
+      <rect x="130" y="192" width="104" height="26" rx="3" fill="#f4b942" opacity="0.9"><animate attributeName="fill" values="#f4b942;#f4b942;#b33a3a;#f4b942;#b33a3a;#b33a3a;#f4b942" keyTimes="0;0.2;0.24;0.28;0.32;0.94;1" dur="6s" repeatCount="indefinite"/></rect>
+      <text x="136" y="209" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="10" font-weight="700" fill="#0a1628">index.js.map</text>
+      <g opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.24;0.25;0.535;0.545;1" dur="6s" repeatCount="indefinite"/><rect x="194" y="183" width="40" height="14" fill="#b33a3a"/><text x="214" y="193.5" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="9" font-weight="700" fill="#c5d0dc">HOLD</text></g>
+    </g>
+    <g opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.575;0.605;0.94;1" dur="6s" repeatCount="indefinite"/><rect x="122" y="270" width="77" height="14" rx="2" fill="#b33a3a" opacity="0.85"/><text x="126" y="280.5" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="9" font-weight="700" fill="#c5d0dc">index.js.map</text></g>
+    <g><rect x="242" y="192" width="70" height="26" rx="3" fill="#f4b942" opacity="0.9"/><text x="248" y="209" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="10" font-weight="700" fill="#0a1628">CHANGELOG</text></g>
+    <rect x="32" y="88" width="3" height="148" fill="#f4b942" opacity="0.8"><animate attributeName="x" values="32;321;321;32" keyTimes="0;0.22;0.99;1" dur="6s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.8;0.8;0;0" keyTimes="0;0.22;0.24;1" dur="6s" repeatCount="indefinite"/></rect>
+  </g>
+  <g class="still">
+    <rect x="46" y="106" width="96" height="40" rx="3" fill="#f4b942" opacity="0.9"/><text x="52" y="130" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="11" font-weight="700" fill="#0a1628">dist/</text>
+    <rect x="152" y="106" width="58" height="40" rx="3" fill="#f4b942" opacity="0.9"/><text x="158" y="130" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="11" font-weight="700" fill="#0a1628">bin/</text>
+    <rect x="220" y="106" width="92" height="40" rx="3" fill="#f4b942" opacity="0.9"/><text x="226" y="130" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="11" font-weight="700" fill="#0a1628">types/</text>
+    <rect x="32" y="252" width="32" height="14" rx="2" fill="#c5d0dc" opacity="0.4"/><text x="36" y="262.5" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="9" font-weight="700" fill="#0a1628">src/</text>
+    <rect x="72" y="252" width="38" height="14" rx="2" fill="#c5d0dc" opacity="0.4"/><text x="76" y="262.5" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="9" font-weight="700" fill="#0a1628">test/</text>
+    <rect x="118" y="252" width="38" height="14" rx="2" fill="#c5d0dc" opacity="0.4"/><text x="122" y="262.5" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="9" font-weight="700" fill="#0a1628">docs/</text>
+    <rect x="164" y="252" width="54" height="14" rx="2" fill="#c5d0dc" opacity="0.4"/><text x="168" y="262.5" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="9" font-weight="700" fill="#0a1628">.github/</text>
+    <rect x="32" y="270" width="82" height="14" rx="2" fill="#c5d0dc" opacity="0.4"/><text x="36" y="280.5" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="9" font-weight="700" fill="#0a1628">tsconfig.json</text>
+    <rect x="122" y="270" width="77" height="14" rx="2" fill="#b33a3a" opacity="0.85"/><text x="126" y="280.5" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="9" font-weight="700" fill="#c5d0dc">index.js.map</text>
+    <rect x="242" y="192" width="70" height="26" rx="3" fill="#f4b942" opacity="0.9"/><text x="248" y="209" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="10" font-weight="700" fill="#0a1628">CHANGELOG</text>
+  </g>
+  <rect x="348" y="62" width="356" height="244" fill="#1a2a40" opacity="0.55"/>
+  <g font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12">
+    <g class="anim" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.30;0.34;0.94;1" dur="6s" repeatCount="indefinite"/><rect x="360" y="77" width="50" height="18" fill="#2f6f5e" opacity="0.9"/><text x="385" y="90" text-anchor="middle" font-weight="700" fill="#0a1628" font-size="11">KEEP</text><text x="420" y="90" fill="#c5d0dc">dist/  bin/  types/  CHANGELOG.md</text></g>
+    <g class="still"><rect x="360" y="77" width="50" height="18" fill="#2f6f5e" opacity="0.9"/><text x="385" y="90" text-anchor="middle" font-weight="700" fill="#0a1628" font-size="11">KEEP</text><text x="420" y="90" fill="#c5d0dc">dist/  bin/  types/  CHANGELOG.md</text></g>
+    <g class="anim" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.40;0.44;0.94;1" dur="6s" repeatCount="indefinite"/><rect x="360" y="107" width="50" height="18" fill="#c5d0dc" opacity="0.35"/><text x="385" y="120" text-anchor="middle" font-weight="700" fill="#c5d0dc" font-size="11">DROP</text><text x="420" y="120" fill="#c5d0dc">src/ test/ docs/ .github/ tsconfig</text></g>
+    <g class="still"><rect x="360" y="107" width="50" height="18" fill="#c5d0dc" opacity="0.35"/><text x="385" y="120" text-anchor="middle" font-weight="700" fill="#c5d0dc" font-size="11">DROP</text><text x="420" y="120" fill="#c5d0dc">src/ test/ docs/ .github/ tsconfig</text></g>
+    <g class="anim" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.50;0.54;0.94;1" dur="6s" repeatCount="indefinite"/><rect x="360" y="137" width="50" height="18" fill="#b33a3a" opacity="0.9"/><text x="385" y="150" text-anchor="middle" font-weight="700" fill="#0a1628" font-size="11">FENCE</text><text x="420" y="150" fill="#c5d0dc">!dist/**/*.map · source-map</text></g>
+    <g class="still"><rect x="360" y="137" width="50" height="18" fill="#b33a3a" opacity="0.9"/><text x="385" y="150" text-anchor="middle" font-weight="700" fill="#0a1628" font-size="11">FENCE</text><text x="420" y="150" fill="#c5d0dc">!dist/**/*.map · source-map</text></g>
+    <g class="anim" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.58;0.62;0.94;1" dur="6s" repeatCount="indefinite"/><text x="360" y="186" fill="#f4b942" font-size="11">"files": ["bin", "dist", "types",</text><text x="360" y="202" fill="#f4b942" font-size="11">          "CHANGELOG.md", "!dist/**/*.map"]</text></g>
+    <g class="still"><text x="360" y="186" fill="#f4b942" font-size="11">"files": ["bin", "dist", "types",</text><text x="360" y="202" fill="#f4b942" font-size="11">          "CHANGELOG.md", "!dist/**/*.map"]</text></g>
+  </g>
+  <text x="360" y="228" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="10" fill="#c5d0dc" opacity="0.6">RE-PACKED WITH THE PROPOSAL</text>
+  <g class="anim"><animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;0.66;0.70;0.94;1" dur="6s" repeatCount="indefinite"/>
+    <rect x="360" y="236" width="332" height="44" rx="4" fill="#b33a3a"/>
+    <text x="372" y="264" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="16" font-weight="700" fill="#c5d0dc">HOLD</text><text x="680" y="264" text-anchor="end" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#c5d0dc">13 files · 689B</text>
+  </g>
+  <g class="anim" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.66;0.70;0.94;1" dur="6s" repeatCount="indefinite"/>
+    <rect x="360" y="236" width="332" height="44" rx="4" fill="#2f6f5e"/>
+    <text x="372" y="264" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="16" font-weight="700" fill="#c5d0dc">CLEAR</text><text x="680" y="264" text-anchor="end" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#c5d0dc">7 files · 473B · −6</text>
+  </g>
+  <g class="still">
+    <rect x="360" y="236" width="332" height="44" rx="4" fill="#2f6f5e"/>
+    <text x="372" y="264" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="16" font-weight="700" fill="#c5d0dc">CLEAR</text><text x="680" y="264" text-anchor="end" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#c5d0dc">7 files · 473B · −6</text>
+  </g>
+  <text x="360" y="298" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="10" fill="#c5d0dc" opacity="0.6">verified by a real npm pack --dry-run</text>
+</svg>

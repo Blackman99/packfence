@@ -383,3 +383,5 @@ footer nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;
   }
   .suitcase { left: 18%; }
 }
+
+.demo-init { display: block; width: 100%; max-width: 720px; height: auto; margin: 1rem 0; border: 1px solid #1a2a40; }

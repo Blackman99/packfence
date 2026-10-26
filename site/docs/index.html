@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="../fonts.css" />
   <link rel="stylesheet" href="../style.css" />
   <meta property="og:title" content="packfence docs" />
-  <meta property="og:description" content="CLI flags, rules, workspaces, SARIF, config, Action inputs, exit codes." />
+  <meta property="og:description" content="CLI flags, init, rules, workspaces, SARIF, config, Action inputs, exit codes." />
   <meta property="og:image" content="https://blackman99.github.io/packfence/og-image.png" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:image" content="https://blackman99.github.io/packfence/og-image.png" />
@@ -44,6 +44,50 @@
       <tr><td><code>--fail</code></td><td>Exit 1 on fail findings (default).</td></tr>
     </table>
     <p>Report paths (annotations, SARIF, <code>--workspaces</code> bag headers) are relative to the directory you run from, so run from the repo root.</p>
+
+    <h2 id="init">packfence init — suggest a files allowlist</h2>
+    <pre>packfence init [path] [--write] [--format human|json] [--config file]</pre>
+    <p>
+      Reads what <code>npm pack --dry-run</code> ships today and proposes a <code>package.json</code> <code>files</code> allowlist:
+      top-level entries that <code>main</code>, <code>module</code>, <code>types</code>, <code>exports</code>, <code>bin</code>, <code>browser</code>, <code>man</code> or an install script point at are kept;
+      tests, fixtures, coverage, examples, docs, CI and editor config, tool configs and <code>src/</code> (when a built directory ships) are dropped;
+      HOLD files inside a kept directory are fenced out with a negation such as <code>!dist/**/*.map</code>.
+      Files npm always adds (<code>package.json</code>, README, LICENSE) are left out of the list. Negations you already have are kept.
+    </p>
+    <p>
+      The proposal is then packed for real in a scratch copy, so the <em>after</em> line (files, size, HOLD/CLEAR) is what npm would actually ship.
+      <code>--write</code> saves it, keeping indentation and key order, and refuses if an entry point would stop shipping.
+      Exit 0 when the proposal is CLEAR, 1 when a HOLD survives (for example a secret inside the <code>main</code> file, which npm always packs), 2 on errors.
+      <code>init</code> works on one package at a time; pass a workspace package path for monorepos.
+    </p>
+    <pre>PACKFENCE INIT — FILES ALLOWLIST PROPOSAL
+package: packfence-fixture-sloppy@1.0.0
+today:   13 files · 689B · HOLD  (no files field)
+
+KEEP
+  bin/            1 file    entry: bin.sloppy
+  dist/           2 files   entry: main
+  types/          1 file    entry: types
+  CHANGELOG.md    1 file    ships today, not dev-only
+
+DROP
+  .github/        1 file    CI config, not needed by consumers
+  docs/           1 file    documentation site, not needed by consumers
+  src/            1 file    sources; the built output is what runs
+  test/           1 file    test suite, not needed by consumers
+  tsconfig.json   1 file    TypeScript build config, not needed by consumers
+
+FENCE (excluded inside kept dirs)
+  !dist/**/*.map  1 file    HOLD source-map
+
+AUTO (npm adds these itself): LICENSE, package.json, README.md
+
+PROPOSED package.json &quot;files&quot;:
+  [&quot;bin&quot;,&quot;dist&quot;,&quot;types&quot;,&quot;CHANGELOG.md&quot;,&quot;!dist/**/*.map&quot;]
+
+after:   7 files · 473B · CLEAR  (−6 files, −216B)  verified with npm pack --dry-run
+
+Run `packfence init --write` to save it to package.json.</pre>
 
     <h2 id="exit-codes">Exit codes</h2>
     <table>
