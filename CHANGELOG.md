@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.3.0 — 2026-10-26
 
 ### Added
 - **`packfence init`**: proposes a `package.json` `files` allowlist from today's real pack. Keeps what `main` / `module` / `types` / `exports` / `bin` / `browser` / `man` / install scripts point at, drops tests, fixtures, coverage, docs, examples, CI / editor / tool config and `src/` when built output ships, and fences HOLD files out of kept directories (`!dist/**/*.map`). Existing negations are preserved. The proposal is verified with a real `npm pack --dry-run` in a scratch copy and reported as a before/after. `--write` saves it (indentation and key order kept, refuses if an entry point would stop shipping); `--format json` for scripts. Exit 1 if a HOLD survives.

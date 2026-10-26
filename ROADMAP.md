@@ -12,7 +12,7 @@
 - [x] SARIF 2.1.0 output (`--format sarif`, `--sarif <file>`, Action `sarif` input) for code-scanning upload
 - [x] Monorepo / npm + Yarn workspaces (`--workspaces`, Action `workspaces` input): scan each publishable package, skip private ones, layered config
 
-## v0.3 — on main, release pending
+## v0.3 — shipped (v0.3.0)
 - [x] `packfence init` — suggest a safe `files` allowlist from the current pack: keep entry points, drop dev material, fence HOLD files with `!negations`, verify with a real re-pack, `--write` / `--format json`
 
 ## v1.0
